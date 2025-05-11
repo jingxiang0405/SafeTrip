@@ -35,7 +35,7 @@ export default function RootLayout() {
           </Stack>
         </ThemedView>
       </AuthProvider>
-      <StatusBar style={colorScheme=="dark" ? "dark" : "light"} />
+      <StatusBar style={colorScheme=="light" ? "dark" : "light"} />
     </ThemeProvider>
   );
 }

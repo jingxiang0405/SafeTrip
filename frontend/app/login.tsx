@@ -1,6 +1,5 @@
 import { Image } from 'expo-image';
-import { View, Text, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, StyleSheet, useColorScheme} from 'react-native';
-
+import { View, Text, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, StyleSheet, useColorScheme, Platform, KeyboardAvoidingView } from 'react-native';
 import { Collapsible } from '@/components/Collapsible';
 import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -26,13 +25,16 @@ export default function LoginScreen() {
   };
 
   const dismissKeyboard = () => {
-    Keyboard.dismiss();
+    if (Platform.OS !== 'web') {
+      Keyboard.dismiss();
+    }
   };
 
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
-        <ThemedText style={styles.text}>Login screen</ThemedText>
+        <KeyboardAvoidingView style={{alignContent: 'center', alignItems: 'center', width: '100%'}}>
+        <ThemedText style={styles.text}>Login</ThemedText>
         <TextInput
           style={styles.input}
           placeholder="Username"
@@ -52,6 +54,7 @@ export default function LoginScreen() {
         <TouchableOpacity onPress={handleLogin} style={styles.button}>
           <Text style={styles.buttonText}>Log in</Text>
         </TouchableOpacity>
+        </KeyboardAvoidingView>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -64,9 +67,11 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
+      backgroundColor: Colors[nowColorScheme].background,
     },
     text: {
       color: Colors[nowColorScheme].text,
+      height: 40,
       fontSize: 24,
       marginBottom: 20,
     },
