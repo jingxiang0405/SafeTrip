@@ -1,25 +1,21 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet, ScrollView, View, SafeAreaView, Text, useColorScheme } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
+import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
 
-
-export default function Index() {
-  const colorScheme = useColorScheme();
-  const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
-
-  const styles = initstyles(nowColorScheme);
-
+export default function HomeScreen() {
   return (
-    <SafeAreaView style={styles.topBarContainer}>
-      <View style={styles.topBar}>
-        <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>SafeTrip</Text>
-      </View>
-
-    <ScrollView style={styles.scrollview}>
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerImage={
+        <Image
+          source={require('@/assets/images/partial-react-logo.png')}
+          style={styles.reactLogo}
+        />
+      }>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
@@ -55,47 +51,25 @@ export default function Index() {
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
       </ThemedView>
-    </ScrollView>
-    </SafeAreaView>
+    </ParallaxScrollView>
   );
 }
 
-const initstyles = (nowColorScheme: 'light' | 'dark') => {
-  const styles = StyleSheet.create({
-    topBarContainer: {
-      flex: 1,
-      backgroundColor: Colors[nowColorScheme].background,
-    },
-    topBar: {
-      backgroundColor: Colors[nowColorScheme].background,
-      marginTop: 10,
-      paddingTop: Platform.OS === 'android' ? 25 : 0, // status bar padding for Android
-      height: Platform.OS === 'android' ? 79 : 50,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1,
-      borderBottomColor: Colors[nowColorScheme].border,
-      borderBottomWidth: 0.5,
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-    },
-    scrollview: {
-      padding: 20,
-    },
-    titleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: 'transparent',
-      gap: 8,
-    },
-    stepContainer: {
-      gap: 8,
-      marginBottom: 8,
-      backgroundColor: 'transparent',
-    },
-  });
-
-  return styles;  
-};
+const styles = StyleSheet.create({
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  stepContainer: {
+    gap: 8,
+    marginBottom: 8,
+  },
+  reactLogo: {
+    height: 178,
+    width: 290,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+  },
+});

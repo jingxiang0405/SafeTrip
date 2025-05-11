@@ -7,7 +7,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 
 
-export default function Index() {
+
+export default function Trip() {
   const colorScheme = useColorScheme();
   const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
 
@@ -16,7 +17,7 @@ export default function Index() {
   return (
     <SafeAreaView style={styles.topBarContainer}>
       <View style={styles.topBar}>
-        <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>SafeTrip</Text>
+        <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Trip</Text>
       </View>
 
     <ScrollView style={styles.scrollview}>
@@ -96,6 +97,5 @@ const initstyles = (nowColorScheme: 'light' | 'dark') => {
       backgroundColor: 'transparent',
     },
   });
-
-  return styles;  
+  return styles;
 };

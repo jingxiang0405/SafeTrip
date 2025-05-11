@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
@@ -22,32 +21,56 @@ export default function TabLayout() {
         tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
+            // backgroundColor: TabBarBackground.color,
             position: 'absolute',
           },
           default: {},
         }),
       }}>
-      <Tabs.Screen
+      <Tabs.Screen 
         name="index"
-        options={{
+        options={{ 
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+          // headerLeft: () => <></>,
+          // tabBarIcon: () => <IonIcons name="home" size={30} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? 'home' : 'home-outline'} 
+              color={color} 
+              size={size} 
+            />
+          ),
+        }} 
       />
-      <Tabs.Screen
-        name="explore"
+      {/* <Tabs.Screen
+        name="trip"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Trip',
+          tabBarIcon: ({ color }) => <IconSymbol size={27} name="paperplane.fill" color={color} />,
         }}
+      /> */}
+      <Tabs.Screen 
+        name="trip"
+        options={{ 
+          title: 'Trip',
+          // headerShown: true,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? 'paper-plane' : 'paper-plane-outline'} 
+              color={color} 
+              size={size} 
+            />
+          )
+        }} 
       />
       <Tabs.Screen 
         name="map"
         options={{ 
+          title: 'Map',
           // headerShown: true,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
-              name={focused ? 'map-sharp' : 'map-outline'} 
+              name={focused ? 'map' : 'map-outline'} 
               color={color} 
               size={size} 
             />
@@ -60,13 +83,14 @@ export default function TabLayout() {
           title: 'Profile',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? 'person-sharp' : 'person-outline'}
+              name={focused ? 'person' : 'person-outline'}
               color={color}
               size={size}
             />
           ),
         }}
       />
+
     </Tabs>
   );
 }

@@ -1,10 +1,14 @@
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, StyleSheet, ScrollView, useWindowDimensions, View, SafeAreaView, Text, useColorScheme } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { Colors } from '@/constants/Colors';
 // import maplibregl from 'maplibre-gl';
 
 export default function MapTest() {
   const { width, height } = useWindowDimensions();
+  const colorScheme = useColorScheme();
+  const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
+  const styles = initStyles(nowColorScheme);
   const mapHtml = `
     <!DOCTYPE html>
     <html lang="en">
@@ -71,8 +75,11 @@ export default function MapTest() {
       container: 'map',
       style: activeStyle.source,
       center: [121.56033, 25.00239],
-      zoom: 12
+      zoom: 12,
+      pitchWithRotate: false,    // disables pitch when rotating
+      dragRotate: false,         // disables right-click + drag rotation
       });
+      map.touchZoomRotate.disableRotation();
       let marker = new maplibregl.Marker({
         // color: "#FFFFFF",
         // draggable: true
@@ -239,37 +246,59 @@ export default function MapTest() {
     }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Map screen</Text>
-      
-      <View style={{
-        width: '90%',
-        height: '80%',
-        borderRadius: 20,
-        overflow: 'hidden',
-        alignSelf: 'center',
-      }}>
-        <WebView 
-          originWhitelist={['*']}
-          source={{ html: mapHtml }}
-          style={{ flex: 1 }}
-        />
+    <SafeAreaView style={styles.topBarContainer}>
+      <View style={styles.topBar}>
+        <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Map</Text>
       </View>
-    </View>
+      <View style={styles.container}>
+        
+        <View style={{
+          width: '92%',
+          height: Platform.OS === 'android' ? '95%' : '90%',
+          marginBottom: Platform.OS === 'android' ? 0 : 47,
+          borderRadius: 20,
+          overflow: 'hidden',
+          alignSelf: 'center',
+        }}>
+          <WebView 
+            originWhitelist={['*']}
+            source={{ html: mapHtml }}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 // export default MapTest;
-
-const styles = StyleSheet.create({
-  container: {
-  flex: 1,
-  backgroundColor: '#25292e',
-  justifyContent: 'center',
-  // alignItems: 'center',
-  },
-  text: {
-  color: '#fff',
-  },
-  
-});
+const initStyles = (nowColorScheme: 'light' | 'dark') => {
+  const styles = StyleSheet.create({
+    topBarContainer: {
+      flex: 1,
+      backgroundColor: Colors[nowColorScheme].background,
+    },
+    topBar: {
+      backgroundColor: Colors[nowColorScheme].background,
+      marginTop: 10,
+      paddingTop: Platform.OS === 'android' ? 25 : 0, // status bar padding for Android
+      height: Platform.OS === 'android' ? 79 : 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+      borderBottomColor: Colors[nowColorScheme].border,
+      borderBottomWidth: 0.5,
+    },
+    container: {
+    flex: 1,
+    backgroundColor: Colors[nowColorScheme].background,
+    justifyContent: 'center',
+    // alignItems: 'center',
+    },
+    text: {
+      fontSize: 24,
+      color: Colors[nowColorScheme].text,
+    },
+    
+  });
+  return styles
+}
