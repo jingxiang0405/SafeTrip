@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -26,9 +26,12 @@ export default function TabLayout() {
             // backgroundColor: TabBarBackground.color,
             backgroundColor: Colors[colorScheme ?? 'light'].background,
             position: 'absolute',
+            elevation: 0,
           },
           default: {
             backgroundColor: Colors[colorScheme ?? 'light'].background,
+            position: 'absolute',
+            elevation: 0,
           },
         }),
       }}>
@@ -87,8 +90,8 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? 'person' : 'person-outline'}
+            <MaterialCommunityIcons
+              name={focused ? 'account-circle' : 'account-circle-outline'}
               color={color}
               size={size}
             />
