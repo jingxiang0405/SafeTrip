@@ -4,23 +4,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 SplashScreen.preventAutoHideAsync();
 
-type Role = "caregiver" | "careReceiver" | null;
-
 type AuthState = {
   isLoggedIn: boolean;
   isReady: boolean;
   username?: string;
-  role: Role;
-  pairedWith: string | null;
-  token: string;
-
   logIn: (username: string, password: string) => void;
-  signUp: (username: string, email: string, phone: string, password: string) => void;
   logOut: () => void;
-
-  selectRole: (newRole: Role) => void;
-  pairWith: (partnerUsername: string) => void;
-  unpair: () => void;
 };
 
 const authStorageKey = "auth-key";
@@ -29,87 +18,37 @@ export const AuthContext = createContext<AuthState>({
   isLoggedIn: false,
   isReady: false,
   username: "",
-  role: null,
-  pairedWith: null,
-  token: "",
-
   logIn: () => {},
-  signUp: () => {},
   logOut: () => {},
-  selectRole: () => {},
-  pairWith: () => {},
-  unpair: () => {},
 });
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState<string>("");
-  const [role, setRole] = useState<Role>(null);
-  const [pairedWith, setPairedWith] = useState<string | null>(null);
-  const [token, setToken] = useState<string>("");
-
+  const [username, setUsername] = useState<string>(""); // Use 'string' instead of 'String'
   const router = useRouter();
 
-  const storeAuthState = async (auth: {
-    username: string;
-    token: string;
-    role: Role;
-    pairedWith: string | null;
-  }) => {
+  const storeAuthState = async (username: string, token: string) => {
     try {
-      const jsonValue = JSON.stringify(auth);
+      const jsonValue = JSON.stringify({ username, token });
       await AsyncStorage.setItem(authStorageKey, jsonValue);
     } catch (e) {
-      console.log("store error", e);
+      console.log(e);
     }
   };
 
   const logIn = (username: string, password: string) => {
-    const newToken = "dummy-user-token";
     setIsLoggedIn(true);
-    setUsername(username);
-    setToken(newToken);
-    setRole(null);
-    setPairedWith(null);
-    storeAuthState({ username, token: newToken, role: null, pairedWith: null });
-    router.replace("/");
-  };
-
-  const signUp = (username: string, email: string, phone: string, password: string) => {
-    const newToken = "dummy-user-token";
-    setIsLoggedIn(true);
-    setUsername(username);
-    setToken(newToken);
-    setRole(null);
-    setPairedWith(null);
-    storeAuthState({ username, token: newToken, role: null, pairedWith: null });
-    router.replace("/");
+    setUsername(username); // Set the username when logging in
+    storeAuthState(username, "dummy-user-token");
+    router.replace("/"); // Navigate to home page after login
   };
 
   const logOut = () => {
     setIsLoggedIn(false);
-    setUsername("");
-    setToken("");
-    setRole(null);
-    setPairedWith(null);
+    setUsername(""); // Clear the username when logging out
     AsyncStorage.removeItem(authStorageKey);
-    router.replace("/login");
-  };
-
-  const selectRole = (newRole: Role) => {
-    setRole(newRole);
-    storeAuthState({ username, token, role: newRole, pairedWith });
-  };
-
-  const pairWith = (partnerUsername: string) => {
-    setPairedWith(partnerUsername);
-    storeAuthState({ username, token, role, pairedWith: partnerUsername });
-  };
-
-  const unpair = () => {
-    setPairedWith(null);
-    storeAuthState({ username, token, role, pairedWith: null });
+    router.replace("/login"); // Navigate to login page
   };
 
   useEffect(() => {
@@ -117,12 +56,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       try {
         const value = await AsyncStorage.getItem(authStorageKey);
         if (value !== null) {
-          const { username, token, role, pairedWith } = JSON.parse(value);
-          setUsername(username);
-          setToken(token);
-          setRole(role);
-          setPairedWith(pairedWith);
-          setIsLoggedIn(true);
+          const { username, token } = JSON.parse(value); // Extract username and token
+          // TODO check if token is valid
+          setUsername(username); // Set the username from storage
+          setIsLoggedIn(true); // Set logged-in state to true
         }
       } catch (e) {
         console.log("Error fetching from storage", e);
@@ -139,22 +76,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [isReady]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        isLoggedIn,
-        isReady,
-        username,
-        token,
-        role,
-        pairedWith,
-        logIn,
-        signUp,
-        logOut,
-        selectRole,
-        pairWith,
-        unpair,
-      }}
-    >
+    <AuthContext.Provider value={{ isReady, isLoggedIn, username, logIn, logOut }}>
       {children}
     </AuthContext.Provider>
   );
