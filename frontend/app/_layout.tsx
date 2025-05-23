@@ -31,6 +31,7 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(protected)" options={{ headerShown: false, animation: 'none' }} />
             <Stack.Screen name="login" options={{ headerShown: false, animation: 'none' }} />
+            <Stack.Screen name="signup" options={{ headerShown: false, animation: 'none' }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ThemedView>
