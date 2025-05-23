@@ -1,28 +1,40 @@
 import { Image } from 'expo-image';
-import { View, Text, TextInput, TouchableWithoutFeedback, Keyboard, TouchableOpacity, StyleSheet, useColorScheme, Platform, KeyboardAvoidingView } from 'react-native';
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
+  TouchableOpacity,
+  StyleSheet,
+  useColorScheme,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import React, { useState, useContext } from 'react';
-import { Link } from 'expo-router';
 import { AuthContext } from '@/utils/authContext';
 import { Colors } from '@/constants/Colors';
-// import { Button } from '@react-navigation/elements';
 
-export default function LoginScreen() {
+export default function SignupScreen() {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const authContext = useContext(AuthContext);
   const colorScheme = useColorScheme();
   const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
-
   const styles = initStyles(nowColorScheme);
 
-  const handleLogin = () => {
-    authContext.logIn(username, password); // Assuming your logIn function now accepts username and password
+  const handleSignUp = () => {
+    if (password !== confirmPassword) {
+      alert('Passwords do not match!');
+      return;
+    }
+    // Replace this with your actual sign-up logic
+    authContext.signUp(username, email, phone, password);
   };
 
   const dismissKeyboard = () => {
@@ -34,11 +46,12 @@ export default function LoginScreen() {
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
-        <KeyboardAvoidingView
+        <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{alignContent: 'center', alignItems: 'center', width: '100%'}}
+          style={{ alignItems: 'center', width: '100%' }}
         >
-          <ThemedText style={styles.text}>Login</ThemedText>
+          <ThemedText style={styles.text}>Sign Up</ThemedText>
+
           <TextInput
             style={styles.input}
             placeholder="Username"
@@ -47,6 +60,26 @@ export default function LoginScreen() {
             onChangeText={setUsername}
             autoCapitalize="none"
           />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor={ Colors[nowColorScheme].subtext }
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            placeholderTextColor={ Colors[nowColorScheme].subtext }
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -55,14 +88,18 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
           />
-          <View style={{ flexDirection: 'row', marginTop: 10 }}>
-            <Text style={{ color: Colors[nowColorScheme].text }}>Don't have an account? </Text>
-            <Link href="/signup">
-              <Text style={{ color: '#007bff' }}>Sign up</Text>
-            </Link>
-          </View>
-          <TouchableOpacity onPress={handleLogin} style={styles.button}>
-            <Text style={styles.buttonText}>Log in</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor={ Colors[nowColorScheme].subtext }
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+
+          <TouchableOpacity onPress={handleSignUp} style={styles.button}>
+            <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </View>
@@ -70,8 +107,8 @@ export default function LoginScreen() {
   );
 }
 
-const initStyles = (nowColorScheme: 'light' | 'dark') => {
-  const styles = StyleSheet.create({
+const initStyles = (nowColorScheme: 'light' | 'dark') =>
+  StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: 'center',
@@ -98,7 +135,7 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
     button: {
       marginTop: 10,
       padding: 15,
-      backgroundColor: '#007bff', // Example button color
+      backgroundColor: '#007bff',
       borderRadius: 5,
     },
     buttonText: {
@@ -107,5 +144,3 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
       fontSize: 16,
     },
   });
-  return styles;
-}
