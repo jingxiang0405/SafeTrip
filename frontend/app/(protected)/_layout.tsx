@@ -33,6 +33,17 @@ export default function ProtectedLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="(pairing)/pairingScreen" 
+          options={{ 
+            presentation: 'modal', 
+            // set no visible
+            // presentation: 'transparentModal',
+            title: 'pairing', 
+            animation: 'slide_from_bottom',
+            headerShown: false 
+          }}
+         />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
