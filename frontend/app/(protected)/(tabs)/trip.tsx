@@ -5,7 +5,7 @@ import { HelloWave } from '@/components/HelloWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 
 export default function Trip() {
@@ -13,17 +13,14 @@ export default function Trip() {
   const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
 
   const styles = initstyles(nowColorScheme);
-  const insets = useSafeAreaInsets();
+
   return (
     <SafeAreaView style={styles.topBarContainer}>
       <View style={styles.topBar}>
         <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Trip</Text>
       </View>
 
-    <ScrollView 
-      style={styles.scrollview}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-    >
+    <ScrollView style={styles.scrollview}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
@@ -72,7 +69,6 @@ const initstyles = (nowColorScheme: 'light' | 'dark') => {
     },
     topBar: {
       backgroundColor: Colors[nowColorScheme].background,
-      paddingBottom: 5,
       marginTop: 10,
       paddingTop: Platform.OS === 'android' ? 25 : 0, // status bar padding for Android
       height: Platform.OS === 'android' ? 79 : 50,
