@@ -3,7 +3,7 @@ import { Platform, StyleSheet, ScrollView, useWindowDimensions, View, SafeAreaVi
 import { WebView } from 'react-native-webview';
 import { Colors } from '@/constants/Colors';
 // import maplibregl from 'maplibre-gl';
-
+import { SafeAreaFrameContext } from 'react-native-safe-area-context';
 export default function MapTest() {
   const { width, height } = useWindowDimensions();
   const colorScheme = useColorScheme();
@@ -242,7 +242,14 @@ export default function MapTest() {
       
       }, []);
     
-      return <div id="map" style={{ width: '100%', height: '100%' }} />;
+      return (
+        <SafeAreaView style={styles.topBarContainer}>
+          <View style={styles.topBar}>
+            <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Map</Text>
+          </View>
+          <div id="map" style={{ width: '100%', height: '100%' }} />
+        </SafeAreaView>
+      );
     }
 
   return (
@@ -276,10 +283,12 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
     topBarContainer: {
       flex: 1,
       backgroundColor: Colors[nowColorScheme].background,
+      marginBottom: 35
     },
     topBar: {
       backgroundColor: Colors[nowColorScheme].background,
       marginTop: 10,
+      paddingBottom: 5,
       paddingTop: Platform.OS === 'android' ? 25 : 0, // status bar padding for Android
       height: Platform.OS === 'android' ? 79 : 50,
       justifyContent: 'center',
