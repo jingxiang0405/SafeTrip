@@ -1,24 +1,23 @@
+import { Colors } from '@/constants/Colors';
+import { AuthContext } from '@/utils/authContext';
+import {
+  FontAwesome5,
+  Ionicons
+} from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { useContext } from 'react';
 import {
   Platform,
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
   useColorScheme,
+  View,
 } from 'react-native';
-import {
-  Ionicons,
-  FontAwesome5,
-  MaterialCommunityIcons,
-} from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AuthContext } from '@/utils/authContext';
-import { useNavigation } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 const router = useRouter();
 
 export default function Profile() {
@@ -104,7 +103,10 @@ export default function Profile() {
             <MenuItem
               icon={<Ionicons name="close-circle-outline" size={24} color="red" />}
               label="解除配對"
-              onPress={authState.unpair}
+              onPress={() => {
+                authState.unpair();
+                authState.selectRole(null); // Reset role to null so UI returns to 選擇角色並進行配對
+              }}
             />
           </>
         )}
