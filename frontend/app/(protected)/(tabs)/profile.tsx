@@ -120,6 +120,18 @@ export default function Profile() {
         <MenuItem
           icon={<Ionicons name="location-outline" size={24} color={Colors[nowColorScheme].text} />}
           label="定位授權"
+          onPress={async () => {
+            try {
+              const { status } = await import('expo-location').then(Location => Location.requestForegroundPermissionsAsync());
+              // if (status === 'granted') {
+              //   alert('定位權限已授權');
+              // } else {
+              //   alert('定位權限被拒絕');
+              // }
+            } catch (e) {
+              alert('定位權限請求失敗');
+            }
+          }}
         />
 
         {/* 社群功能 */}
