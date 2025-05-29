@@ -1,24 +1,24 @@
+import { Colors } from '@/constants/Colors';
+import { AuthContext } from '@/utils/authContext';
+import {
+  FontAwesome5,
+  Ionicons
+} from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { useContext } from 'react';
 import {
   Platform,
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
   useColorScheme,
+  View,
 } from 'react-native';
-import {
-  Ionicons,
-  FontAwesome5,
-  MaterialCommunityIcons,
-} from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AuthContext } from '@/utils/authContext';
-import { useNavigation } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import * as Location from 'expo-location';
 const router = useRouter();
 
 export default function Profile() {
@@ -104,7 +104,10 @@ export default function Profile() {
             <MenuItem
               icon={<Ionicons name="close-circle-outline" size={24} color="red" />}
               label="解除配對"
-              onPress={authState.unpair}
+              onPress={() => {
+                authState.unpair();
+                authState.selectRole(null); // Reset role to null so UI returns to 選擇角色並進行配對
+              }}
             />
           </>
         )}
@@ -118,6 +121,25 @@ export default function Profile() {
         <MenuItem
           icon={<Ionicons name="location-outline" size={24} color={Colors[nowColorScheme].text} />}
           label="定位授權"
+          onPress={async () => {
+            try {
+              // 先請求前景權限
+              const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
+              if (fgStatus !== 'granted') {
+                alert('定位權限被拒絕');
+                return;
+              }
+              // 再請求背景權限（iOS 會彈出「永遠允許」選項）
+              const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
+              if (bgStatus === 'granted') {
+                alert('已取得「永遠允許」定位權限');
+              } else {
+                alert('未取得「永遠允許」定位權限（僅允許使用期間）');
+              }
+            } catch (e) {
+              // alert('定位權限請求失敗');
+            }
+          }}
         />
 
         {/* 社群功能 */}
