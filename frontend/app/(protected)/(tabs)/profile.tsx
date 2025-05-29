@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 const router = useRouter();
 
 export default function Profile() {
@@ -122,14 +123,21 @@ export default function Profile() {
           label="定位授權"
           onPress={async () => {
             try {
-              const { status } = await import('expo-location').then(Location => Location.requestForegroundPermissionsAsync());
-              // if (status === 'granted') {
-              //   alert('定位權限已授權');
-              // } else {
-              //   alert('定位權限被拒絕');
-              // }
+              // 先請求前景權限
+              const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
+              if (fgStatus !== 'granted') {
+                alert('定位權限被拒絕');
+                return;
+              }
+              // 再請求背景權限（iOS 會彈出「永遠允許」選項）
+              const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
+              if (bgStatus === 'granted') {
+                alert('已取得「永遠允許」定位權限');
+              } else {
+                alert('未取得「永遠允許」定位權限（僅允許使用期間）');
+              }
             } catch (e) {
-              alert('定位權限請求失敗');
+              // alert('定位權限請求失敗');
             }
           }}
         />
