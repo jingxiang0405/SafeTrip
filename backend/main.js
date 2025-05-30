@@ -17,20 +17,12 @@ const PORT = process.env.PORT;
 // Socket IO 
 const httpServer = createServer(app);
 
-const io = new Server(httpServer, {
-    cors: {
-        origin: ["http://localhost:5173", "http://127.0.0.1:5173"]
-    }
-})
+const io = new Server(httpServer)
 
 io.on("connection", socket => SetupSocket(socket));
 
 // Middle Ware
 app.use(bodyParser.json());
-app.use(cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"]
-}));
-
 
 // Routes start here
 import exampleRouter from '#src/routers/example_router.js';
