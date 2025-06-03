@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Platform, StyleSheet, ScrollView, View, SafeAreaView, Text, useColorScheme, TextInput, TouchableOpacity } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import axios from 'axios';
+import { useState } from 'react';
+import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface BusStop {
   StopName: {
@@ -9,6 +10,7 @@ interface BusStop {
   };
   StopID: string;
 }
+
 
 interface BusRoute {
   RouteName: {
@@ -29,6 +31,7 @@ export default function Trip() {
   const [error, setError] = useState('');
 
   const styles = initStyles(nowColorScheme);
+  const insets = useSafeAreaInsets();
 
   const handleCreateTrip = async () => {
     if (!startStop || !endStop || !busNumber) {
@@ -59,13 +62,13 @@ export default function Trip() {
     }
   };
 
+
   return (
     <SafeAreaView style={styles.topBarContainer}>
-      <View style={styles.topBar}>
-        <Text style={styles.headerText}>Create New Trip</Text>
-      </View>
-
       <ScrollView style={styles.scrollview}>
+        <View style={styles.topBar}>
+          <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Trip</Text>
+        </View>
         <View style={styles.formContainer}>
           <Text style={styles.label}>Start Bus Stop</Text>
           <TextInput
@@ -137,6 +140,7 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
     },
     topBar: {
       backgroundColor: Colors[nowColorScheme].background,
+      paddingBottom: 5,
       marginTop: 10,
       paddingTop: Platform.OS === 'android' ? 25 : 0,
       height: Platform.OS === 'android' ? 79 : 50,
