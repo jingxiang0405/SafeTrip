@@ -1,253 +1,252 @@
 import { Colors } from '@/constants/Colors';
 import { AuthContext } from '@/utils/authContext';
 import {
-  FontAwesome5,
-  Ionicons
+    FontAwesome5,
+    Ionicons
 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useContext } from 'react';
 import {
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
-const router = useRouter();
 
 export default function Profile() {
-  const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
-  const styles = initstyles(nowColorScheme);
-  const authState = useContext(AuthContext);
-  const navigation = useNavigation<any>();
-
-  const MenuItem = ({
-    icon,
-    label,
-    onPress,
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    onPress?: () => void;
-  }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      {icon}
-      <Text style={styles.menuLabel}>{label}</Text>
-    </TouchableOpacity>
-  );
-
-  return (
-    <SafeAreaView style={styles.topBarContainer}>
-      <View style={styles.topBar}>
-        <Text style={{ color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28 }}>
-          Profile
-        </Text>
-      </View>
-
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>功能表</Text>
-        </View>
-
-        <TouchableOpacity style={styles.profileBox}>
-          <Ionicons
-            name="person-circle-outline"
-            size={40}
-            color={Colors[nowColorScheme].text}
-          />
-          <View style={styles.profileText}>
-            <Text style={styles.username}>{authState.username}</Text>
-            <Text style={styles.subtext}>帳戶資訊</Text>
-          </View>
+    const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
+    const styles = initstyles(nowColorScheme);
+    const authState = useContext(AuthContext);
+    const navigation = useNavigation<any>();
+    const router = useRouter();
+    const MenuItem = ({
+        icon,
+        label,
+        onPress,
+    }: {
+        icon: React.ReactNode;
+        label: string;
+        onPress?: () => void;
+    }) => (
+        <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+            {icon}
+            <Text style={styles.menuLabel}>{label}</Text>
         </TouchableOpacity>
+    );
 
-        {/* 帳戶設定 */}
-        <Text style={styles.sectionTitle}>帳戶設定</Text>
-        <MenuItem
-          icon={<Ionicons name="key-outline" size={24} color={Colors[nowColorScheme].text} />}
-          label="修改密碼"
-        />
-        <MenuItem
-          icon={<Ionicons name="settings-outline" size={24} color={Colors[nowColorScheme].text} />}
-          label="一般設定"
-        />
+    return (
+        <SafeAreaView style={styles.topBarContainer}>
+            <View style={styles.topBar}>
+                <Text style={{ color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28 }}>
+                    Profile
+                </Text>
+            </View>
 
-        {/* 身份與照顧功能 */}
-        <Text style={styles.sectionTitle}>身份與照顧</Text>
-        {authState.role === null ? (
-          <MenuItem
-            icon={<Ionicons name="sync-outline" size={24} color={Colors[nowColorScheme].text} />}
-            label="選擇角色並進行配對"
-            onPress={() => router.push({ pathname: '/(protected)/(pairing)/pairingScreen' })}
-          />
-        ) : (
-          <>
-            <MenuItem
-              icon={<FontAwesome5 name="user-shield" size={24} color={Colors[nowColorScheme].text} />}
-              label={`目前身份：${authState.role === 'caregiver' ? '照護者' : '被照顧者'}`}
-            />
-            <MenuItem
-              icon={<Ionicons name="people-outline" size={24} color={Colors[nowColorScheme].text} />}
-              label={`配對對象：${authState.pairedWith ?? '尚未配對'}`}
-            />
-            <MenuItem
-              icon={<Ionicons name="close-circle-outline" size={24} color="red" />}
-              label="解除配對"
-              onPress={() => {
-                authState.unpair();
-                authState.selectRole(null); // Reset role to null so UI returns to 選擇角色並進行配對
-              }}
-            />
-          </>
-        )}
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+            >
+                <View style={styles.header}>
+                    <Text style={styles.title}>功能表</Text>
+                </View>
 
-        {/* 安全與定位 */}
-        <Text style={styles.sectionTitle}>安全與定位</Text>
-        <MenuItem
-          icon={<Ionicons name="call-outline" size={24} color={Colors[nowColorScheme].text} />}
-          label="設定緊急聯絡人"
-        />
-        <MenuItem
-          icon={<Ionicons name="location-outline" size={24} color={Colors[nowColorScheme].text} />}
-          label="定位授權"
-          onPress={async () => {
-            try {
-              // 先請求前景權限
-              const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
-              if (fgStatus !== 'granted') {
-                alert('定位權限被拒絕');
-                return;
-              }
-              // 再請求背景權限（iOS 會彈出「永遠允許」選項）
-              const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
-              if (bgStatus === 'granted') {
-                alert('已取得「永遠允許」定位權限');
-              } else {
-                alert('未取得「永遠允許」定位權限（僅允許使用期間）');
-              }
-            } catch (e) {
-              // alert('定位權限請求失敗');
-            }
-          }}
-        />
+                <TouchableOpacity style={styles.profileBox}>
+                    <Ionicons
+                        name="person-circle-outline"
+                        size={40}
+                        color={Colors[nowColorScheme].text}
+                    />
+                    <View style={styles.profileText}>
+                        <Text style={styles.username}>{authState.username}</Text>
+                        <Text style={styles.subtext}>帳戶資訊</Text>
+                    </View>
+                </TouchableOpacity>
 
-        {/* 社群功能 */}
-        <Text style={styles.sectionTitle}>社群</Text>
-        <MenuItem
-          icon={<Ionicons name="add-circle-outline" size={24} color={Colors[nowColorScheme].text} />}
-          label="建立社群"
-        />
-        <MenuItem
-          icon={<Ionicons name="person-add-outline" size={24} color={Colors[nowColorScheme].text} />}
-          label="交友邀請"
-        />
+                {/* 帳戶設定 */}
+                <Text style={styles.sectionTitle}>帳戶設定</Text>
+                <MenuItem
+                    icon={<Ionicons name="key-outline" size={24} color={Colors[nowColorScheme].text} />}
+                    label="修改密碼"
+                />
+                <MenuItem
+                    icon={<Ionicons name="settings-outline" size={24} color={Colors[nowColorScheme].text} />}
+                    label="一般設定"
+                />
 
-        {/* Facebook 社團 */}
-        <Text style={styles.sectionTitle}>Facebook 社團</Text>
-        <MenuItem
-          icon={<Ionicons name="people-circle-outline" size={24} color={Colors[nowColorScheme].text} />}
-          label="NCCU 政大學生交流板"
-        />
+                {/* 身份與照顧功能 */}
+                <Text style={styles.sectionTitle}>身份與照顧</Text>
+                {authState.role === null ? (
+                    <MenuItem
+                        icon={<Ionicons name="sync-outline" size={24} color={Colors[nowColorScheme].text} />}
+                        label="選擇角色並進行配對"
+                        onPress={() => router.push({ pathname: '/(protected)/(pairing)/pairingScreen' })}
+                    />
+                ) : (
+                    <>
+                        <MenuItem
+                            icon={<FontAwesome5 name="user-shield" size={24} color={Colors[nowColorScheme].text} />}
+                            label={`目前身份：${authState.role === 'caregiver' ? '照護者' : '被照顧者'}`}
+                        />
+                        <MenuItem
+                            icon={<Ionicons name="people-outline" size={24} color={Colors[nowColorScheme].text} />}
+                            label={`配對對象：${authState.pairedWith ?? '尚未配對'}`}
+                        />
+                        <MenuItem
+                            icon={<Ionicons name="close-circle-outline" size={24} color="red" />}
+                            label="解除配對"
+                            onPress={() => {
+                                authState.unpair();
+                                authState.selectRole(""); // Reset role to null so UI returns to 選擇角色並進行配對
+                            }}
+                        />
+                    </>
+                )}
 
-        {/* 登出 */}
-        <TouchableOpacity onPress={authState.logOut} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>登出</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
-  );
+                {/* 安全與定位 */}
+                <Text style={styles.sectionTitle}>安全與定位</Text>
+                <MenuItem
+                    icon={<Ionicons name="call-outline" size={24} color={Colors[nowColorScheme].text} />}
+                    label="設定緊急聯絡人"
+                />
+                <MenuItem
+                    icon={<Ionicons name="location-outline" size={24} color={Colors[nowColorScheme].text} />}
+                    label="定位授權"
+                    onPress={async () => {
+                        try {
+                            // 先請求前景權限
+                            const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
+                            if (fgStatus !== 'granted') {
+                                alert('定位權限被拒絕');
+                                return;
+                            }
+                            // 再請求背景權限（iOS 會彈出「永遠允許」選項）
+                            const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
+                            if (bgStatus === 'granted') {
+                                alert('已取得「永遠允許」定位權限');
+                            } else {
+                                alert('未取得「永遠允許」定位權限（僅允許使用期間）');
+                            }
+                        } catch (e) {
+                            // alert('定位權限請求失敗');
+                        }
+                    }}
+                />
+
+                {/* 社群功能 */}
+                <Text style={styles.sectionTitle}>社群</Text>
+                <MenuItem
+                    icon={<Ionicons name="add-circle-outline" size={24} color={Colors[nowColorScheme].text} />}
+                    label="建立社群"
+                />
+                <MenuItem
+                    icon={<Ionicons name="person-add-outline" size={24} color={Colors[nowColorScheme].text} />}
+                    label="交友邀請"
+                />
+
+                {/* Facebook 社團 */}
+                <Text style={styles.sectionTitle}>Facebook 社團</Text>
+                <MenuItem
+                    icon={<Ionicons name="people-circle-outline" size={24} color={Colors[nowColorScheme].text} />}
+                    label="NCCU 政大學生交流板"
+                />
+
+                {/* 登出 */}
+                <TouchableOpacity onPress={authState.logOut} style={styles.logoutButton}>
+                    <Text style={styles.logoutText}>登出</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </SafeAreaView>
+    );
 }
 
 const initstyles = (nowColorScheme: 'light' | 'dark') => {
-  return StyleSheet.create({
-    topBarContainer: {
-      flex: 1,
-      backgroundColor: Colors[nowColorScheme].background,
-    },
-    topBar: {
-      backgroundColor: Colors[nowColorScheme].background,
-      marginTop: 10,
-      paddingBottom: 5,
-      paddingTop: Platform.OS === 'android' ? 25 : 0,
-      height: Platform.OS === 'android' ? 79 : 50,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderBottomColor: Colors[nowColorScheme].border,
-      borderBottomWidth: 0.5,
-    },
-    container: {
-      flex: 1,
-      backgroundColor: Colors[nowColorScheme].background,
-      padding: 16,
-    },
-    header: {
-      paddingTop: 16,
-      paddingBottom: 8,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: Colors[nowColorScheme].text,
-    },
-    profileBox: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: Colors[nowColorScheme].boxBackground,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 16,
-    },
-    profileText: {
-      marginLeft: 12,
-    },
-    username: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: Colors[nowColorScheme].text,
-    },
-    subtext: {
-      fontSize: 12,
-      color: Colors[nowColorScheme].text,
-    },
-    sectionTitle: {
-      marginTop: 20,
-      marginBottom: 8,
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: Colors[nowColorScheme].text,
-    },
-    menuItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: Colors[nowColorScheme].boxBackground,
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 12,
-    },
-    menuLabel: {
-      marginLeft: 12,
-      fontSize: 16,
-      color: Colors[nowColorScheme].text,
-    },
-    logoutButton: {
-      marginTop: 30,
-      alignItems: 'center',
-    },
-    logoutText: {
-      color: 'red',
-      fontWeight: 'bold',
-      fontSize: 16,
-    },
-  });
+    return StyleSheet.create({
+        topBarContainer: {
+            flex: 1,
+            backgroundColor: Colors[nowColorScheme].background,
+        },
+        topBar: {
+            backgroundColor: Colors[nowColorScheme].background,
+            marginTop: 10,
+            paddingBottom: 5,
+            paddingTop: Platform.OS === 'android' ? 25 : 0,
+            height: Platform.OS === 'android' ? 79 : 50,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderBottomColor: Colors[nowColorScheme].border,
+            borderBottomWidth: 0.5,
+        },
+        container: {
+            flex: 1,
+            backgroundColor: Colors[nowColorScheme].background,
+            padding: 16,
+        },
+        header: {
+            paddingTop: 16,
+            paddingBottom: 8,
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: Colors[nowColorScheme].text,
+        },
+        profileBox: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: Colors[nowColorScheme].boxBackground,
+            padding: 12,
+            borderRadius: 8,
+            marginBottom: 16,
+        },
+        profileText: {
+            marginLeft: 12,
+        },
+        username: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: Colors[nowColorScheme].text,
+        },
+        subtext: {
+            fontSize: 12,
+            color: Colors[nowColorScheme].text,
+        },
+        sectionTitle: {
+            marginTop: 20,
+            marginBottom: 8,
+            fontSize: 14,
+            fontWeight: 'bold',
+            color: Colors[nowColorScheme].text,
+        },
+        menuItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: Colors[nowColorScheme].boxBackground,
+            padding: 12,
+            borderRadius: 8,
+            marginBottom: 12,
+        },
+        menuLabel: {
+            marginLeft: 12,
+            fontSize: 16,
+            color: Colors[nowColorScheme].text,
+        },
+        logoutButton: {
+            marginTop: 30,
+            alignItems: 'center',
+        },
+        logoutText: {
+            color: 'red',
+            fontWeight: 'bold',
+            fontSize: 16,
+        },
+    });
 };
