@@ -84,7 +84,7 @@ export default function Profile() {
 
                 {/* 身份與照顧功能 */}
                 <Text style={styles.sectionTitle}>身份與照顧</Text>
-                {authState.role === null ? (
+                {authState.role === '' ? (
                     <MenuItem
                         icon={<Ionicons name="sync-outline" size={24} color={Colors[nowColorScheme].text} />}
                         label="選擇角色並進行配對"
