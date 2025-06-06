@@ -69,8 +69,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         // TODO: Backend
         const userData = {
             token: "dummy-user-token",
-            role: 'caregiver',
-            pairedWith: { name: 'Tom', id: 123 }
+            role: '',
+            pairedWith: { name: '', id: 0 }
         }
         setIsLoggedIn(true);
         setUsername(username);
