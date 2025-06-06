@@ -1,10 +1,14 @@
 import { SocketExample } from "#src/controllers/example_controller.js";
 
-export default function setupSocket(socket) {
 
-    socket.on('example', SocketExample);
+async function SetupSocket(io, socket) {
 
-
+    socket.on('example', async () => SocketExample(io, socket));
 
     socket.on('disconnect', () => console.log(`Socket disconnected: ${socket.id}`));
+
+
+    console.log("Socket set up")
 }
+
+export default SetupSocket;

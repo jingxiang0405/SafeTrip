@@ -16,8 +16,7 @@ class SocketApi {
     }
 
     private getUrl(): string {
-        const expoConfig = Constants.expoConfig;
-        const socketUrl = expoConfig?.extra?.SOCKET_URL;
+        const socketUrl = Constants.expoConfig?.extra?.SOCKET_URL;
         if (!socketUrl) {
             throw new Error(
                 '⚠️ Missing SOCKET_URL in expoConfig.extra (check your app.json/app.config.js)'
@@ -30,10 +29,16 @@ class SocketApi {
         if (this.socket) return;
         const url = this.getUrl();
 
-        this.socket = io(url, {
-            transports: ['websocket'],   // force WS
-            reconnectionAttempts: 5,
-        });
+        try {
+            this.socket = io(url, {
+                transports: ['websocket'],    // 只用 WebSocket，排除 long-polling
+                reconnectionAttempts: 5,      // 可選：重試次數
+                timeout: 5000,                // 可選：連線超時 ms
+            });
+        } catch (err) {
+            console.error('Socket.IO init error:', err);
+            return;
+        }
 
         this.socket.on('connect', () => {
             console.log('🟢 Socket connected:', this.socket!.id);

@@ -1,9 +1,10 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import dotenv from 'dotenv';
 
 import { createServer } from 'http';
-import { Server } from 'socket.io'
+import { Server as SocketIOServer } from 'socket.io'
 import SetupSocket from '#src/routers/socket_router.js';
 
 // Initialize environment variables
@@ -11,17 +12,27 @@ dotenv.config();
 
 // Start initializing express server
 const app = express();
-const PORT = process.env.PORT;
 
 // Socket IO 
 const httpServer = createServer(app);
 
-const io = new Server(httpServer)
+const io = new SocketIOServer(httpServer
+    , {
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST']
+        }
+    }
+)
 
-io.on("connection", socket => SetupSocket(socket));
+io.on("connection", async (socket) => {
+    console.log(`Socket connected: ${socket.id}`);
+    SetupSocket(io, socket);
+});
 
 // Middle Ware
 app.use(bodyParser.json());
+app.use(cors({ origin: '*' }));
 
 // Routes start here
 import exampleRouter from '#src/routers/example_router.js';
@@ -32,14 +43,9 @@ app.use("/example", exampleRouter);
 //
 
 
-
-// Global error handler
-app.use((err, req, res) => {
-    console.error(err);
-    res.status(err.status || 500).send("something is wrong...\n detected in global error handler");
-});
+const PORT = process.env.PORT;
 
 // Start server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

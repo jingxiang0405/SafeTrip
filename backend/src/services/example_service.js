@@ -1,7 +1,7 @@
-import db from "#src/database.js";
+// import db from "#src/database.js";
 
 // for example purpose, querying all users
-async function Example() {
+async function ExampleServiceMethod() {
     try {
         const result = 'example data'
         return result;
@@ -13,5 +13,5 @@ async function Example() {
 }
 
 export {
-    Example,
+    ExampleServiceMethod
 }
