@@ -1,3 +1,4 @@
+import { EmergencyContactModal } from '@/components/EmergencyContactModal';
 import { Colors } from '@/constants/Colors';
 import { AuthContext } from '@/utils/authContext';
 import {
@@ -5,9 +6,11 @@ import {
     Ionicons
 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import {
+    Linking,
     Platform,
     SafeAreaView,
     ScrollView,
@@ -18,7 +21,6 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Location from 'expo-location';
 
 export default function Profile() {
     const insets = useSafeAreaInsets();
@@ -28,6 +30,23 @@ export default function Profile() {
     const authState = useContext(AuthContext);
     const navigation = useNavigation<any>();
     const router = useRouter();
+    const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleUnpair = async () => {
+        try {
+            setIsLoading(true);
+            await authState.unpair();
+            // Only reset role after successful unpair
+            await authState.selectRole("");
+        } catch (error) {
+            console.error('Unpair failed:', error);
+            alert('解除配對失敗，請稍後再試');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const MenuItem = ({
         icon,
         label,
@@ -42,6 +61,13 @@ export default function Profile() {
             <Text style={styles.menuLabel}>{label}</Text>
         </TouchableOpacity>
     );
+
+    // 處理撥打緊急電話
+    const handleEmergencyCall = () => {
+        if (authState.emergencyContact) {
+            Linking.openURL(`tel:${authState.emergencyContact}`);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.topBarContainer}>
@@ -98,25 +124,41 @@ export default function Profile() {
                         />
                         <MenuItem
                             icon={<Ionicons name="people-outline" size={24} color={Colors[nowColorScheme].text} />}
-                            label={`配對對象：${authState.pairedWith ?? '尚未配對'}`}
+                            label={`配對對象：${authState.pairedWith ? authState.pairedWith.name : '尚未配對' }`}
                         />
-                        <MenuItem
-                            icon={<Ionicons name="close-circle-outline" size={24} color="red" />}
-                            label="解除配對"
-                            onPress={() => {
-                                authState.unpair();
-                                authState.selectRole(""); // Reset role to null so UI returns to 選擇角色並進行配對
-                            }}
-                        />
+                        {authState.pairedWith ? (
+                            <MenuItem
+                                icon={<Ionicons name="close-circle-outline" size={24} color="red" />}
+                                label={isLoading ? "解除配對中..." : "解除配對"}
+                                onPress={handleUnpair}
+                            />
+                        ) : null}
                     </>
                 )}
 
                 {/* 安全與定位 */}
                 <Text style={styles.sectionTitle}>安全與定位</Text>
-                <MenuItem
-                    icon={<Ionicons name="call-outline" size={24} color={Colors[nowColorScheme].text} />}
-                    label="設定緊急聯絡人"
-                />
+                {authState.emergencyContact ? (
+                    <>
+                        <MenuItem
+                            icon={<Ionicons name="call" size={24} color="red" />}
+                            label={`撥打緊急聯絡人 ${authState.emergencyContact}`}
+                            onPress={handleEmergencyCall}
+                        />
+                        <MenuItem
+                            icon={<Ionicons name="create-outline" size={24} color={Colors[nowColorScheme].text} />}
+                            label="更改緊急聯絡人"
+                            onPress={() => setShowModal(true)}
+                        />
+                    </>
+                ) : (
+                    <MenuItem
+                        icon={<Ionicons name="call-outline" size={24} color={Colors[nowColorScheme].text} />}
+                        label="設定緊急聯絡人"
+                        onPress={() => setShowModal(true)}
+                    />
+                )}
+                
                 <MenuItem
                     icon={<Ionicons name="location-outline" size={24} color={Colors[nowColorScheme].text} />}
                     label="定位授權"
@@ -131,32 +173,15 @@ export default function Profile() {
                             // 再請求背景權限（iOS 會彈出「永遠允許」選項）
                             const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
                             if (bgStatus === 'granted') {
-                                alert('已取得「永遠允許」定位權限');
+                                console.log('已取得「永遠允許」定位權限');
                             } else {
-                                alert('未取得「永遠允許」定位權限（僅允許使用期間）');
+                                console.log('未取得「永遠允許」定位權限（僅允許使用期間）');
                             }
                         } catch (e) {
                             // alert('定位權限請求失敗');
+                            console.log('定位權限請求失敗:', e);
                         }
                     }}
-                />
-
-                {/* 社群功能 */}
-                <Text style={styles.sectionTitle}>社群</Text>
-                <MenuItem
-                    icon={<Ionicons name="add-circle-outline" size={24} color={Colors[nowColorScheme].text} />}
-                    label="建立社群"
-                />
-                <MenuItem
-                    icon={<Ionicons name="person-add-outline" size={24} color={Colors[nowColorScheme].text} />}
-                    label="交友邀請"
-                />
-
-                {/* Facebook 社團 */}
-                <Text style={styles.sectionTitle}>Facebook 社團</Text>
-                <MenuItem
-                    icon={<Ionicons name="people-circle-outline" size={24} color={Colors[nowColorScheme].text} />}
-                    label="NCCU 政大學生交流板"
                 />
 
                 {/* 登出 */}
@@ -164,6 +189,13 @@ export default function Profile() {
                     <Text style={styles.logoutText}>登出</Text>
                 </TouchableOpacity>
             </ScrollView>
+
+            <EmergencyContactModal
+                visible={showModal}
+                onClose={() => setShowModal(false)}
+                onSubmit={(phone) => authState.setEmergencyContact(phone)}
+                currentPhone={authState.emergencyContact}
+            />
         </SafeAreaView>
     );
 }

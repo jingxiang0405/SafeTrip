@@ -24,18 +24,23 @@ export default function PairingScreen() {
 
     const inputRefs = Array.from({ length: 6 }, () => React.createRef<TextInput>());
 
-    const handlePair = (role: 'caregiver' | 'careReceiver') => {
-        setSelectedRole(role);
-        if (role === 'careReceiver') {
-            // Generate code for 被照顧者
-            // TODO: Backend 
-            // Returns a random 6-digit code as string
-            // const code = await GenerateCode();
-            const code = '123456';
-            setPairingCode(code);
-            setStep('showCode');
-        } else {
-            setStep('enterCode');
+    const handlePair = async (role: 'caregiver' | 'careReceiver') => {
+        try {
+            setSelectedRole(role);
+            if (role === 'careReceiver') {
+                // Generate code for 被照顧者
+                // TODO: Backend 
+                // Returns a random 6-digit code as string
+                // const code = await GenerateCode();
+                const code = '123456';
+                setPairingCode(code);
+                setStep('showCode');
+            } else {
+                setStep('enterCode');
+            }
+        } catch (error) {
+            console.error('Handle pair failed:', error);
+            setSelectedRole('');
         }
     };
 
@@ -52,56 +57,83 @@ export default function PairingScreen() {
     };
 
     // When pairing is successful, THEN set role in context
-    const handleVerify = () => {
+    const handleVerify = async () => {
         const code = inputCode.join('');
         setLoading(true);
-        setTimeout(() => {
-
-
-            setLoading(false);
-
+        try {
             // TODO: Backend
-            // const result = PairWithCode(code);
+            // const result = await PairWithCode(code);
             const result = {
                 status: 200,
                 data: {
                     username: "被照顧者A",
-
                 }
-            }
+            };
 
             if (result.status === 200) {
+                const newRole = 'caregiver';
+                // First set role
+                await authState.selectRole(newRole);
+                
+                // Then do pairing, passing the role we just set
+                await authState.pairWith({
+                    name: result.data.username ?? '', 
+                    id: 123
+                }, newRole); // Pass the role we just set
+                
                 setPairResult(`配對成功！對象：${result.data.username ?? "Unknown"}`);
-                authState.selectRole('caregiver');
-                authState.pairWith(result.data.username ?? "Unknown");
-                console.log(authState);
-                setTimeout(() => {
-                    router.back();
-                }, 200); // 1秒後自動退出配對畫面
+                router.back();
             } else {
                 setPairResult('配對失敗，請檢查代碼');
-                authState.unpair();
             }
-        }, 800);
+        } catch (error) {
+            console.error('Pairing failed:', error);
+            setPairResult('配對失敗，請稍後再試');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // For careReceiver, confirm after showing code
-    const handleCareReceiverConfirm = () => {
-        authState.selectRole('careReceiver');
-        // pairingWith can be set later if needed
-        authState.pairWith('照護者A'); // Mock pairing with caregiver
-        router.back();
+    const handleCareReceiverConfirm = async () => {
+        setLoading(true);
+        try {
+            const newRole = 'careReceiver';
+            // First set role
+            await authState.selectRole(newRole);
+            
+            // Then do pairing, passing the role we just set
+            await authState.pairWith({
+                name: '照護者A', 
+                id: 123
+            }, newRole); // Pass the role we just set
+            
+            router.back();
+        } catch (error) {
+            console.error('Setting care receiver failed:', error);
+            setPairResult('設定失敗，請稍後再試');
+            setSelectedRole('');
+            setPairingCode('');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Cancel: reset local state, do not set role
-    const handleCancel = () => {
-        setStep('choose');
-        setSelectedRole(null);
-        setPairingCode('');
-        setInputCode(['', '', '', '', '', '']);
-        setPairResult(null);
-        setLoading(false);
-        router.back();
+    const handleCancel = async () => {
+        try {
+            await authState.unpair();
+            setStep('choose');
+            setSelectedRole('');
+            setPairingCode('');
+            setInputCode(['', '', '', '', '', '']);
+            setPairResult(null);
+            router.back();
+        } catch (error) {
+            console.error('Cancel failed:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // UI rendering
