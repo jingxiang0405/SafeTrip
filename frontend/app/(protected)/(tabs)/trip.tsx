@@ -1,238 +1,68 @@
-import { Colors } from '@/constants/Colors';
-import axios from 'axios';
-import { useState } from 'react';
-import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import React, { useState } from 'react';
 
-interface BusStop {
-  StopName: {
-    Zh_tw: string;
-  };
-  StopID: string;
-}
+// 假資料：用來模擬站點資料（未來這裡會改成從 TDX API 抓）
+import { fakeStops } from '../lib/fakeData';
 
-
-interface BusRoute {
-  RouteName: {
-    Zh_tw: string;
-  };
-  RouteID: string;
-  Stops: BusStop[];
-}
+// 驗證輸入的起點與終點是否在 fake 路線中（未來可以改成使用 TDX 回傳的 stops 來檢查）
+import { validateStops } from '../lib/validateStops';
 
 export default function Trip() {
-  const colorScheme = useColorScheme();
-  const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
+  const router = useRouter();
+
+  // 輸入狀態
   const [startStop, setStartStop] = useState('');
   const [endStop, setEndStop] = useState('');
   const [busNumber, setBusNumber] = useState('');
-  const [busRoutes, setBusRoutes] = useState<BusRoute[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const styles = initStyles(nowColorScheme);
-  const insets = useSafeAreaInsets();
-
-  const handleCreateTrip = async () => {
+  // 建立行程邏輯
+  const handleCreateTrip = () => {
+    // 基本欄位檢查
     if (!startStop || !endStop || !busNumber) {
-      setError('Please fill in all fields');
+      Alert.alert('錯誤', '請輸入所有欄位');
       return;
     }
 
-    setLoading(true);
-    setError('');
+    // 驗證輸入的站點是否在此路線中（可用 TDX 回傳的 Stops 陣列來比對）
+    if (!validateStops(startStop, endStop)) {
+      Alert.alert('錯誤', '起點或終點站不存在於路線中');
+      return;
+    }
 
-    try {
-      // This would be replaced with your actual TDX API endpoint
-      const response = await axios.get(`YOUR_BACKEND_API/bus-routes/${busNumber}`);
-      setBusRoutes(response.data);
-      
-      // Here you would also create the trip in your backend
-      await axios.post('YOUR_BACKEND_API/trips', {
+    // ✅ 導航到地圖頁面，傳遞 stops（站點陣列）與 trip 參數
+    // ⚠️ 注意：這裡的 stops 是用 JSON.stringify 傳遞，未來 TDX 資料也可以這樣傳
+    router.push({
+      pathname: '/MapScreen',
+      params: {
+        stops: JSON.stringify(fakeStops),
         startStop,
         endStop,
         busNumber
-      });
-
-    } catch (err) {
-      setError('Failed to create trip. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+      }
+    });
   };
 
-
   return (
-    <SafeAreaView style={styles.topBarContainer}>
-      <ScrollView style={styles.scrollview}>
-        <View style={styles.topBar}>
-          <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Trip</Text>
-        </View>
-        <View style={styles.formContainer}>
-          <Text style={styles.label}>Start Bus Stop</Text>
-          <TextInput
-            style={styles.input}
-            value={startStop}
-            onChangeText={setStartStop}
-            placeholder="Enter starting bus stop"
-            placeholderTextColor={Colors[nowColorScheme].subtext}
-          />
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>建立測試 Trip</Text>
 
-          <Text style={styles.label}>End Bus Stop</Text>
-          <TextInput
-            style={styles.input}
-            value={endStop}
-            onChangeText={setEndStop}
-            placeholder="Enter destination bus stop"
-            placeholderTextColor={Colors[nowColorScheme].subtext}
-          />
+      <TextInput placeholder="起點站" style={styles.input} value={startStop} onChangeText={setStartStop} />
+      <TextInput placeholder="終點站" style={styles.input} value={endStop} onChangeText={setEndStop} />
+      <TextInput placeholder="公車號碼" style={styles.input} value={busNumber} onChangeText={setBusNumber} />
 
-          <Text style={styles.label}>Bus Number</Text>
-          <TextInput
-            style={styles.input}
-            value={busNumber}
-            onChangeText={setBusNumber}
-            placeholder="Enter bus number"
-            placeholderTextColor={Colors[nowColorScheme].subtext}
-            keyboardType="number-pad"
-          />
-
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-          <TouchableOpacity 
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleCreateTrip}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Creating Trip...' : 'Create Trip'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {busRoutes.length > 0 && (
-          <View style={styles.routeContainer}>
-            <Text style={styles.sectionTitle}>Bus Route Information</Text>
-            {busRoutes.map((route, index) => (
-              <View key={route.RouteID} style={styles.routeItem}>
-                <Text style={styles.routeName}>{route.RouteName.Zh_tw}</Text>
-                <Text style={styles.stopsTitle}>Stops:</Text>
-                {route.Stops.map((stop, stopIndex) => (
-                  <Text key={stop.StopID} style={styles.stopName}>
-                    {stopIndex + 1}. {stop.StopName.Zh_tw}
-                  </Text>
-                ))}
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+      <TouchableOpacity style={styles.button} onPress={handleCreateTrip}>
+        <Text style={styles.buttonText}>建立並查看地圖</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
-const initStyles = (nowColorScheme: 'light' | 'dark') => {
-  const styles = StyleSheet.create({
-    topBarContainer: {
-      flex: 1,
-      backgroundColor: Colors[nowColorScheme].background,
-    },
-    topBar: {
-      backgroundColor: Colors[nowColorScheme].background,
-      paddingBottom: 5,
-      marginTop: 10,
-      paddingTop: Platform.OS === 'android' ? 25 : 0,
-      height: Platform.OS === 'android' ? 79 : 50,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1,
-      borderBottomColor: Colors[nowColorScheme].border,
-      borderBottomWidth: 0.5,
-    },
-    headerText: {
-      color: Colors[nowColorScheme].text,
-      fontWeight: 'bold',
-      fontSize: 28,
-    },
-    scrollview: {
-      flex: 1,
-    },
-    formContainer: {
-      padding: 20,
-    },
-    label: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: Colors[nowColorScheme].text,
-      marginBottom: 8,
-    },
-    input: {
-      backgroundColor: Colors[nowColorScheme === 'dark' ? 'dark' : 'light'].background,
-      borderWidth: 1,
-      borderColor: Colors[nowColorScheme].border,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 16,
-      color: Colors[nowColorScheme].text,
-      fontSize: 16,
-    },
-    button: {
-      backgroundColor: '#007AFF',
-      padding: 16,
-      borderRadius: 8,
-      alignItems: 'center',
-      marginTop: 16,
-    },
-    buttonDisabled: {
-      opacity: 0.7,
-    },
-    buttonText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    errorText: {
-      color: '#FF3B30',
-      marginBottom: 16,
-    },
-    routeContainer: {
-      padding: 20,
-      borderTopWidth: 1,
-      borderTopColor: Colors[nowColorScheme].border,
-    },
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: Colors[nowColorScheme].text,
-      marginBottom: 16,
-    },
-    routeItem: {
-      marginBottom: 24,
-      padding: 16,
-      backgroundColor: Colors[nowColorScheme === 'dark' ? 'dark' : 'light'].background,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: Colors[nowColorScheme].border,
-    },
-    routeName: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: Colors[nowColorScheme].text,
-      marginBottom: 12,
-    },
-    stopsTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: Colors[nowColorScheme].text,
-      marginBottom: 8,
-    },
-    stopName: {
-      fontSize: 14,
-      color: Colors[nowColorScheme].text,
-      marginLeft: 16,
-      marginBottom: 4,
-    },
-  });
-  return styles;
-};
+// 樣式
+const styles = StyleSheet.create({
+  container: { padding: 24, flexGrow: 1 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24 },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 16 },
+  button: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8, alignItems: 'center' },
+  buttonText: { color: 'white', fontWeight: '600' },
+});

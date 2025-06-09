@@ -7,6 +7,23 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/*
+import { View, Text, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
+
+export default function Home() {
+  return (
+    <View style={{ padding: 24 }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>歡迎使用 Bus Trip App</Text>
+      <TouchableOpacity onPress={() => router.push('/trip')}>
+        <Text style={{ color: 'blue' }}>前往建立 Trip</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+*/
+
+
 export default function Index() {
   const colorScheme = useColorScheme();
   const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';

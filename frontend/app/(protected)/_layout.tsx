@@ -8,6 +8,8 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
+
+
 export default function ProtectedLayout() {
   const authState = useContext(AuthContext);
   const colorScheme = useColorScheme();

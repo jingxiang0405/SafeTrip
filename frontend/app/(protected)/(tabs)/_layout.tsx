@@ -12,6 +12,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   return (
+    
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
@@ -72,9 +73,9 @@ export default function TabLayout() {
         }} 
       />
       <Tabs.Screen 
-        name="map"
+        name="MapScreen"
         options={{ 
-          title: 'Map',
+          title: 'MapScreen',
           // headerShown: true,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
@@ -98,7 +99,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
     </Tabs>
   );
 }
