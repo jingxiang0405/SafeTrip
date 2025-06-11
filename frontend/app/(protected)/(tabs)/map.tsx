@@ -1,313 +1,302 @@
-import React, { useEffect } from 'react';
-import { Platform, StyleSheet, ScrollView, useWindowDimensions, View, SafeAreaView, Text, useColorScheme } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { Colors } from '@/constants/Colors';
-// import maplibregl from 'maplibre-gl';
-import { SafeAreaFrameContext } from 'react-native-safe-area-context';
-export default function MapTest() {
-  const { width, height } = useWindowDimensions();
-  const colorScheme = useColorScheme();
-  const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
-  const styles = initStyles(nowColorScheme);
-  const mapHtml = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content='width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;' />
-    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" />
-    <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
-    <style>
-      body { margin: 0; padding: 0; background: black; }
-      #map { position: absolute; top: 0px; bottom: 0; width: 100%; }
-      .header {
-      position: absolute;
-      top: 0;
-      width: 100%;
-      background: #111;
-      color: #fff;
-      z-index: 1000;
-      text-align: center;
-      font-size: 20px;
-      }
-      .side-menu a {
-      display: block;
-      padding: 0px;
-      color: white;
-      text-decoration: none;
-      cursor: pointer;
-      }
+import { useBottomTabOverflow } from "@/components/ui/TabBarBackground";
+import { useImage } from "expo-image";
+import { AppleMaps, GoogleMaps } from "expo-maps";
+import { AppleMapsMapType } from "expo-maps/build/apple/AppleMaps.types";
+import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
+import React, { useRef, useState } from "react";
+import { Alert, Button, Platform, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { locationList } from "../lib/LocationList.js";
 
-    </style>
-    </head>
-    <body>
-    <div class="side-menu" id="menu" hidden></div>
-    <div id="map"></div>
+const SF_ZOOM = 12;
 
-    <script>
-      const voyager = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
+export default function HomeScreen() {
+  const bottom = useBottomTabOverflow();
+  const [locationIndex, setLocationIndex] = useState(0);
+  const ref = useRef<AppleMaps.MapView>(null);
 
-      const styles = [  
-      { label: 'Voyager', source: voyager },
-      ];
-
-      const menu = document.getElementById('menu');
-      let activeStyle = null;
-
-      styles.forEach(style => {
-      let link = document.createElement('a');
-      link.innerHTML = style.label;
-      link.onclick = (e) => {
-        map.setStyle(style.source);
-        document.querySelector('.active')?.classList.remove('active');
-        e.target.classList.add('active');
-      };
-      menu.appendChild(link);
-
-      if (!activeStyle) {
-        link.classList.add('active');
-        activeStyle = { source: style.source };
-        activeStyle = { source: voyager };
-      }
-      });
-
-      const map = new maplibregl.Map({
-      container: 'map',
-      style: activeStyle.source,
-      center: [121.56033, 25.00239],
-      zoom: 12,
-      pitchWithRotate: false,    // disables pitch when rotating
-      dragRotate: false,         // disables right-click + drag rotation
-      });
-      map.touchZoomRotate.disableRotation();
-      let marker = new maplibregl.Marker({
-        // color: "#FFFFFF",
-        // draggable: true
-        }).setLngLat([121.56033, 25.00239])
-        .addTo(map);
-
-      map.addControl(new maplibregl.NavigationControl());
-    
-      map.on('load', () => {
-        const layers = map.getStyle().layers;
-        // var layers = map.getStyle().layers;
-        for (var i = 0; i < layers.length; i++) {
-          if (layers[i].id === 'building' || layers[i].id === 'building-top') {  // Check for the building layer ID
-          map.setLayoutProperty(layers[i].id, 'visibility', 'none');
-          // break; // Exit loop once we've found and modified the building layer
-          }
-        }
-        const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL';
-        map.addSource('openmaptiles', {
-          url: "https://api.maptiler.com/tiles/v3/tiles.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL",
-          type: 'vector',
-        });
-         map.addLayer(
-          {
-            'id': '3d-buildings',
-            'source': 'openmaptiles',
-            'source-layer': 'building',
-            'type': 'fill-extrusion',
-            'minzoom': 15,
-            'filter': ['!=', ['get', 'hide_3d'], true],
-            'paint': {
-              'fill-extrusion-color': [
-                'interpolate',
-                ['linear'],
-                ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
-              ],
-              'fill-extrusion-height': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                15,
-                0,
-                16,
-                ['get', 'render_height']
-              ],
-              'fill-extrusion-base': ['case',
-                ['>=', ['get', 'zoom'], 16],
-                ['get', 'render_min_height'], 0
-              ]
-            }
-          },
-          labelLayerId
-        );
-      });
-    </script>
-    </body>
-    </html>
-  `;
-  if (Platform.OS === 'web') {
-    const injectMapLibreAssets = () => {
-      // Inject CSS
-      const link = document.createElement('link');
-      link.href = 'https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css';
-      link.rel = 'stylesheet';
-      document.head.appendChild(link);
-    
-      // Inject JS
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js';
-      script.async = true;
-      document.body.appendChild(script);
-      };
-    
-      injectMapLibreAssets();
-    // return <div dangerouslySetInnerHTML={{ __html: mapHtml }}></div>
-    const maplibregl = require('maplibre-gl');
-    useEffect(() => {
-      const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL';
-      const map = new maplibregl.Map({
-        style: `https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json`,
-        center: [121.56033, 25.00239],
-        zoom: 15.5,
-        pitch: 10,
-        // bearing: -17.6,
-        container: 'map',
-        canvasContextAttributes: {antialias: true}
-      });
-    
-      // The 'building' layer in the streets vector source contains building-height
-      // data from OpenStreetMap.
-      map.on('load', () => {
-        // Insert the layer beneath any symbol layer.
-        const layers = map.getStyle().layers;
-        // var layers = map.getStyle().layers;
-        for (var i = 0; i < layers.length; i++) {
-        if (layers[i].id === 'building' || layers[i].id === 'building-top') {  // Check for the building layer ID
-          map.setLayoutProperty(layers[i].id, 'visibility', 'none');
-          // break; // Exit loop once we've found and modified the building layer
-        }
-        }
-        let labelLayerId;
-        for (let i = 0; i < layers.length; i++) {
-          if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
-            labelLayerId = layers[i].id;
-            break;
-          }
-        }
-    
-        map.addSource('openmaptiles', {
-          url: `https://api.maptiler.com/tiles/v3/tiles.json?key=${MAPTILER_KEY}`,
-          type: 'vector',
-        });
-    
-        map.addLayer(
-          {
-            'id': '3d-buildings',
-            'source': 'openmaptiles',
-            'source-layer': 'building',
-            'type': 'fill-extrusion',
-            'minzoom': 15,
-            'filter': ['!=', ['get', 'hide_3d'], true],
-            'paint': {
-              'fill-extrusion-color': [
-                'interpolate',
-                ['linear'],
-                ['get', 'render_height'], 0, 'lightgray', 200, 'royalblue', 400, 'lightblue'
-              ],
-              'fill-extrusion-height': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                15,
-                0,
-                16,
-                ['get', 'render_height']
-              ],
-              'fill-extrusion-base': ['case',
-                ['>=', ['get', 'zoom'], 16],
-                ['get', 'render_min_height'], 0
-              ]
-            }
-          },
-          labelLayerId
-        );
-        const allLayers = map.getStyle().layers;
-        for (let i = allLayers.length - 1; i >= 0; i--) {
-          if (allLayers[i].id !== '3d-buildings') {
-            map.moveLayer('3d-buildings', allLayers[i].id);
-            break;
-          }
-        }
-      });
-    
-      map.addControl(new maplibregl.NavigationControl());
-      let marker = new maplibregl.Marker({
-        // color: "#FFFFFF",
-        // draggable: true
-        }).setLngLat([121.56033, 25.00239])
-        .addTo(map);
-      
-      }, []);
-    
-      return (
-        <SafeAreaView style={styles.topBarContainer}>
-          <View style={styles.topBar}>
-            <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Map</Text>
-          </View>
-          <div id="map" style={{ width: '100%', height: '100%' }} />
-        </SafeAreaView>
-      );
-    }
-
-  return (
-    <SafeAreaView style={styles.topBarContainer}>
-      <View style={styles.topBar}>
-        <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Map</Text>
-      </View>
-      <View style={styles.container}>
-        
-        <View style={{
-          width: '92%',
-          height: Platform.OS === 'android' ? '95%' : '90%',
-          marginBottom: Platform.OS === 'android' ? 0 : 47,
-          borderRadius: 20,
-          overflow: 'hidden',
-          alignSelf: 'center',
-        }}>
-          <WebView 
-            originWhitelist={['*']}
-            source={{ html: mapHtml }}
-          />
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-};
-
-// export default MapTest;
-const initStyles = (nowColorScheme: 'light' | 'dark') => {
-  const styles = StyleSheet.create({
-    topBarContainer: {
-      flex: 1,
-      backgroundColor: Colors[nowColorScheme].background,
-      marginBottom: 35
+  const image = useImage("https://picsum.photos/128", {
+    onError(error) {
+      console.error(error);
     },
-    topBar: {
-      backgroundColor: Colors[nowColorScheme].background,
-      marginTop: 10,
-      paddingBottom: 5,
-      paddingTop: Platform.OS === 'android' ? 25 : 0, // status bar padding for Android
-      height: Platform.OS === 'android' ? 79 : 50,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1,
-      borderBottomColor: Colors[nowColorScheme].border,
-      borderBottomWidth: 0.5,
-    },
-    container: {
-    flex: 1,
-    backgroundColor: Colors[nowColorScheme].background,
-    justifyContent: 'center',
-    // alignItems: 'center',
-    },
-    text: {
-      fontSize: 24,
-      color: Colors[nowColorScheme].text,
-    },
-    
   });
-  return styles
+
+  const cameraPosition = {
+    coordinates: {
+      latitude: locationList[locationIndex].stores[0].point[0],
+      longitude: locationList[locationIndex].stores[0].point[1],
+    },
+    zoom: SF_ZOOM,
+  };
+
+  function handleChangeWithRef(direction: "next" | "prev") {
+    const newIndex = locationIndex + (direction === "next" ? 1 : -1);
+    // const nextLocation = locationList[newIndex];
+
+    // Set camera position first to ensure animation happens
+    ref.current?.setCameraPosition({
+      coordinates: {
+        latitude: nextLocation.stores[0].point[0],
+        longitude: nextLocation.stores[0].point[1],
+      },
+      zoom: SF_ZOOM,
+    });
+
+    // Update state after animation is triggered
+    setLocationIndex(newIndex);
+  }
+
+  const renderMapControls = () => (
+    <>
+      <View style={{ flex: 8 }} pointerEvents="none" />
+
+      <View style={styles.controlsContainer} pointerEvents="auto">
+        {/* 1 */}
+        <Button title="Prev" onPress={() => handleChangeWithRef("prev")} />
+        <Button title="Next" onPress={() => handleChangeWithRef("next")} />
+
+        {/* 2 */}
+        {/* <Button
+          title="Set random"
+          onPress={() =>
+            ref.current?.setCameraPosition({
+              coordinates: {
+                latitude: Math.random() * 360 - 180,
+                longitude: Math.random() * 360 - 180,
+              },
+              zoom: 1,
+            })
+          }
+        /> */}
+      </View>
+    </>
+  );
+
+  if (Platform.OS === "ios") {
+    return (
+      <>
+        <AppleMaps.View
+          ref={ref}
+          style={StyleSheet.absoluteFill}
+          cameraPosition={cameraPosition}
+          properties={{
+            isTrafficEnabled: false,
+            mapType: AppleMapsMapType.STANDARD,
+            selectionEnabled: true,
+          }}
+          // 3
+          markers={markersApple}
+          // 4
+          //ios only
+          annotations={[
+            {
+              coordinates: { latitude: 37.8199, longitude: -122.4783 },
+              title: "Expo HQ",
+              text: "Expo HQ",
+              textColor: "white",
+              backgroundColor: "black",
+              icon: image ? image : undefined,
+            },
+          ]}
+          // 5
+          polylines={[
+            {
+              color: "blue",
+              width: 5,
+              coordinates: polylineCoordinates,
+            },
+          ]}
+          // onPolylineClick={(event) => {
+          //   console.log(event);
+          //   Alert.alert("Polyline clicked", JSON.stringify(event));
+          // }}
+
+          onMapClick={(e) => {
+            console.log(
+              JSON.stringify({ type: "onMapClick", data: e }, null, 2)
+            );
+          }}
+          onMarkerClick={(e) => {
+            console.log(
+              JSON.stringify({ type: "onMarkerClick", data: e }, null, 2)
+            );
+          }}
+          onCameraMove={(e) => {
+            console.log(
+              JSON.stringify({ type: "onCameraMove", data: e }, null, 2)
+            );
+          }}
+        />
+        <SafeAreaView
+          style={{ flex: 1, paddingBottom: bottom }}
+          pointerEvents="box-none"
+        >
+          {renderMapControls()}
+        </SafeAreaView>
+      </>
+    );
+  } else if (Platform.OS === "android") {
+    return (
+      <>
+        <GoogleMaps.View
+          ref={ref}
+          style={StyleSheet.absoluteFill}
+          cameraPosition={cameraPosition}
+          properties={{
+            isBuildingEnabled: true,
+            isIndoorEnabled: true,
+            mapType: GoogleMapsMapType.TERRAIN,
+            selectionEnabled: true,
+            isMyLocationEnabled: false, // requires location permission
+            isTrafficEnabled: true,
+            // minZoomPreference: 1,
+            // maxZoomPreference: 20,
+          }}
+          // 3
+          polylines={[
+            {
+              color: "red",
+              width: 20,
+              coordinates: polylineCoordinates,
+            },
+          ]}
+          // 4
+          markers={markersGoogle}
+          onPolylineClick={(event) => {
+            console.log(event);
+            Alert.alert("Polyline clicked", JSON.stringify(event));
+          }}
+          onMapLoaded={() => {
+            console.log(JSON.stringify({ type: "onMapLoaded" }, null, 2));
+          }}
+          onMapClick={(e) => {
+            console.log(
+              JSON.stringify({ type: "onMapClick", data: e }, null, 2)
+            );
+          }}
+          onMapLongClick={(e) => {
+            console.log(
+              JSON.stringify({ type: "onMapLongClick", data: e }, null, 2)
+            );
+          }}
+          onPOIClick={(e) => {
+            console.log(
+              JSON.stringify({ type: "onPOIClick", data: e }, null, 2)
+            );
+          }}
+          onMarkerClick={(e) => {
+            console.log(
+              JSON.stringify({ type: "onMarkerClick", data: e }, null, 2)
+            );
+          }}
+          onCameraMove={(e) => {
+            console.log(
+              JSON.stringify({ type: "onCameraMove", data: e }, null, 2)
+            );
+          }}
+        />
+        {renderMapControls()}
+      </>
+    );
+  } else {
+    return <Text>Maps are only available on Android and iOS</Text>;
+  }
 }
+
+const styles = StyleSheet.create({
+  controlsContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+});
+
+const markersGoogle = [
+  {
+    coordinates: { latitude: 49.259133, longitude: -123.10079 },
+    title: "49th Parallel Café & Lucky's Doughnuts - Main Street",
+    snippet: "49th Parallel Café & Lucky's Doughnuts - Main Street",
+    draggable: true,
+  },
+  {
+    coordinates: { latitude: 49.268034, longitude: -123.154819 },
+    title: "49th Parallel Café & Lucky's Doughnuts - 4th Ave",
+    snippet: "49th Parallel Café & Lucky's Doughnuts - 4th Ave",
+    draggable: true,
+  },
+  {
+    coordinates: { latitude: 49.286036, longitude: -123.12303 },
+    title: "49th Parallel Café & Lucky's Doughnuts - Thurlow",
+    snippet: "49th Parallel Café & Lucky's Doughnuts - Thurlow",
+    draggable: true,
+  },
+  {
+    coordinates: { latitude: 49.311879, longitude: -123.079241 },
+    title: "49th Parallel Café & Lucky's Doughnuts - Lonsdale",
+    snippet: "49th Parallel Café & Lucky's Doughnuts - Lonsdale",
+    draggable: true,
+  },
+  {
+    coordinates: {
+      latitude: 49.27235336018808,
+      longitude: -123.13455838338278,
+    },
+    title: "A La Mode Pie Café - Granville Island",
+    snippet: "A La Mode Pie Café - Granville Island",
+    draggable: true,
+  },
+];
+
+const markersApple = [
+  {
+    coordinates: { latitude: 49.259133, longitude: -123.10079 },
+    title: "49th Parallel Café & Lucky's Doughnuts - Main Street",
+    tintColor: "brown",
+    systemImage: "cup.and.saucer.fill",
+  },
+  {
+    coordinates: { latitude: 49.268034, longitude: -123.154819 },
+    title: "49th Parallel Café & Lucky's Doughnuts - 4th Ave",
+    tintColor: "brown",
+    systemImage: "cup.and.saucer.fill",
+  },
+  {
+    coordinates: { latitude: 49.286036, longitude: -123.12303 },
+    title: "49th Parallel Café & Lucky's Doughnuts - Thurlow",
+    tintColor: "brown",
+    systemImage: "cup.and.saucer.fill",
+  },
+  {
+    coordinates: { latitude: 49.311879, longitude: -123.079241 },
+    title: "49th Parallel Café & Lucky's Doughnuts - Lonsdale",
+    tintColor: "brown",
+    systemImage: "cup.and.saucer.fill",
+  },
+  {
+    coordinates: {
+      latitude: 49.27235336018808,
+      longitude: -123.13455838338278,
+    },
+    title: "A La Mode Pie Café - Granville Island",
+    tintColor: "orange",
+    systemImage: "fork.knife",
+  },
+];
+const polylineCoordinates = [
+  { latitude: 33.8121, longitude: -117.919 }, // Disneyland
+  { latitude: 33.837, longitude: -117.912 },
+  { latitude: 33.88, longitude: -117.9 },
+  { latitude: 33.9456, longitude: -117.8735 },
+  { latitude: 34.0, longitude: -117.85 },
+  { latitude: 34.05, longitude: -117.82 },
+  { latitude: 34.1, longitude: -117.78 },
+  { latitude: 34.2, longitude: -118.0 },
+  { latitude: 34.2222, longitude: -118.1234 },
+  { latitude: 34.233, longitude: -118.2 },
+  { latitude: 34.2355, longitude: -118.3 },
+  { latitude: 34.1367, longitude: -118.2942 }, // Hollywood
+  { latitude: 34.1341, longitude: -118.3215 }, // Hollywood Sign
+];
