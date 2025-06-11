@@ -1,6 +1,9 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, ScrollView, View, SafeAreaView, TextInput, TouchableOpacity, Alert, useColorScheme } from 'react-native';
+import { Colors } from '@/constants/Colors';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 
 // 假資料：用來模擬站點資料（未來這裡會改成從 TDX API 抓）
 import { fakeStops } from '../lib/fakeData';
@@ -10,6 +13,9 @@ import { validateStops } from '../lib/validateStops';
 
 export default function Trip() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
+  const styles = initStyles(nowColorScheme);
 
   // 輸入狀態
   const [startStop, setStartStop] = useState('');
@@ -44,25 +50,110 @@ export default function Trip() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>建立測試 Trip</Text>
+    <SafeAreaView style={styles.topBarContainer}>
+      <View style={styles.topBar}>
+        <ThemedText style={styles.headerTitle}>Trip</ThemedText>
+      </View>
 
-      <TextInput placeholder="起點站" style={styles.input} value={startStop} onChangeText={setStartStop} />
-      <TextInput placeholder="終點站" style={styles.input} value={endStop} onChangeText={setEndStop} />
-      <TextInput placeholder="公車號碼" style={styles.input} value={busNumber} onChangeText={setBusNumber} />
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <ThemedView style={styles.formContainer}>
+          <ThemedText type="title" style={styles.title}>Create Trip</ThemedText>
 
-      <TouchableOpacity style={styles.button} onPress={handleCreateTrip}>
-        <Text style={styles.buttonText}>建立並查看地圖</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <TextInput
+            placeholder="Start Stop"
+            placeholderTextColor={Colors[nowColorScheme].subtext}
+            style={styles.input}
+            value={startStop}
+            onChangeText={setStartStop}
+          />
+
+          <TextInput
+            placeholder="End Stop"
+            placeholderTextColor={Colors[nowColorScheme].subtext}
+            style={styles.input}
+            value={endStop}
+            onChangeText={setEndStop}
+          />
+
+          <TextInput
+            placeholder="Bus Number"
+            placeholderTextColor={Colors[nowColorScheme].subtext}
+            style={styles.input}
+            value={busNumber}
+            onChangeText={setBusNumber}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleCreateTrip}>
+            <ThemedText style={styles.buttonText}>View on Map</ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-// 樣式
-const styles = StyleSheet.create({
-  container: { padding: 24, flexGrow: 1 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 16 },
-  button: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: 'white', fontWeight: '600' },
-});
+const initStyles = (nowColorScheme: 'light' | 'dark') => {
+  const styles = StyleSheet.create({
+    topBarContainer: {
+      flex: 1,
+      backgroundColor: Colors[nowColorScheme].background,
+    },
+    topBar: {
+      backgroundColor: Colors[nowColorScheme].background,
+      marginTop: 10,
+      paddingTop: Platform.OS === 'android' ? 25 : 0,
+      height: Platform.OS === 'android' ? 79 : 50,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+      borderBottomColor: Colors[nowColorScheme].border,
+      borderBottomWidth: 0.5,
+    },
+    headerTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: Colors[nowColorScheme].text,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: Colors[nowColorScheme].background,
+    },
+    contentContainer: {
+      padding: 20,
+      flexGrow: 1,
+    },
+    formContainer: {
+      width: '100%',
+      maxWidth: 400,
+      alignSelf: 'center',
+      gap: 16,
+      backgroundColor: 'transparent',
+    },
+    title: {
+      marginBottom: 24,
+      textAlign: 'center',
+    },
+    input: {
+      width: '100%',
+      padding: 15,
+      borderWidth: 1,
+      borderColor: Colors[nowColorScheme].border,
+      borderRadius: 8,
+      color: Colors[nowColorScheme].text,
+      backgroundColor: Colors[nowColorScheme].background,
+    },
+    button: {
+      backgroundColor: '#007AFF',
+      padding: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 16,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontWeight: '600',
+      fontSize: 16,
+    },
+  });
+  return styles;
+};
