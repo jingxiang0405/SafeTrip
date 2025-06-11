@@ -7,5 +7,4 @@ import { GetExampleData } from '#src/controllers/example_controller.js';
 // http://localhost:PORT/example
 
 router.get("/", GetExampleData);
-
 export default router;

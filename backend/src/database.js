@@ -1,5 +1,10 @@
 import { Pool } from 'pg';
 
+import dotenv from 'dotenv';
+
+// Initialize environment variables
+dotenv.config();
+
 const pool = new Pool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
@@ -8,6 +13,5 @@ const pool = new Pool({
     database: process.env.DB_NAME,
 });
 
-
-
+console.log("Database Connected Successfully");
 export default pool;

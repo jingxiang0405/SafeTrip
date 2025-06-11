@@ -7,14 +7,6 @@ async function GetExampleData(req, res) {
     res.status(200).send(result);
 }
 
-// socket
-async function SocketExample(io, socket) {
-
-    const data = await ExampleServiceMethod();
-    console.log('socket example');
-    io.emit('example', { data: data })
-}
 export {
-    GetExampleData,
-    SocketExample
+    GetExampleData
 }
