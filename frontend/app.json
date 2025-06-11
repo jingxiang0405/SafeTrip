@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "SafeTrip",
-    "slug": "SafeTrip",
+    "slug": "safetrip",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.its.SafeTrip"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +25,8 @@
         "googleMaps": {
           "apiKey": "your-api-key-here"
         }
-      }
+      },
+      "package": "com.its.SafeTrip"
     },
     "web": {
       "bundler": "metro",
@@ -50,8 +52,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "2eaef75e-4717-4346-9a8e-f84c285a8a4b"
+        "projectId": "4383b6de-2518-44bb-99d7-b66fbfcd6a6a"
       }
-    }
+    },
+    "owner": "safetrip"
   }
 }
