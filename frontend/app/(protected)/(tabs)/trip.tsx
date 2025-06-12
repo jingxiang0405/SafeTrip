@@ -1,15 +1,12 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useMemo} from 'react';
 import { Platform, StyleSheet, ScrollView, View, SafeAreaView, TextInput, TouchableOpacity, Alert, useColorScheme } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-// 假資料：用來模擬站點資料（未來這裡會改成從 TDX API 抓）
-import { fakeStops } from '../lib/fakeData';
-
-// 驗證輸入的起點與終點是否在 fake 路線中（未來可以改成使用 TDX 回傳的 stops 來檢查）
-import { validateStops } from '../lib/validateStops';
+import AutocompleteInput from '@/components/AutocompleteInput';
+import { fakeRouteMap, fakeRouteNumbers } from '../lib/fakeRoutes';
 
 export default function Trip() {
   const router = useRouter();
@@ -22,6 +19,11 @@ export default function Trip() {
   const [endStop, setEndStop] = useState('');
   const [busNumber, setBusNumber] = useState('');
 
+  const stopOptions = useMemo(() => {
+    return busNumber && fakeRouteMap[busNumber] ? fakeRouteMap[busNumber].map(s => s.StopName.Zh_tw) : [];
+  }, [busNumber]);
+
+
   // 建立行程邏輯
   const handleCreateTrip = () => {
     // 基本欄位檢查
@@ -30,21 +32,18 @@ export default function Trip() {
       return;
     }
 
-    // 驗證輸入的站點是否在此路線中（可用 TDX 回傳的 Stops 陣列來比對）
-    if (!validateStops(startStop, endStop)) {
-      Alert.alert('錯誤', '起點或終點站不存在於路線中');
-      return;
-    }
+
 
     // ✅ 導航到地圖頁面，傳遞 stops（站點陣列）與 trip 參數
     // ⚠️ 注意：這裡的 stops 是用 JSON.stringify 傳遞，未來 TDX 資料也可以這樣傳
     router.push({
       pathname: '/map',
       params: {
-        stops: JSON.stringify(fakeStops),
+        busNumber,
         startStop,
         endStop,
-        busNumber
+        city: 'Taipei',
+        stops: JSON.stringify(fakeRouteMap[busNumber] ?? [])
       }
     });
   };
@@ -59,30 +58,35 @@ export default function Trip() {
         <ThemedView style={styles.formContainer}>
           <ThemedText type="title" style={styles.title}>Create Trip</ThemedText>
 
-          <TextInput
-            placeholder="Start Stop"
-            placeholderTextColor={Colors[nowColorScheme].subtext}
-            style={styles.input}
-            value={startStop}
-            onChangeText={setStartStop}
-          />
+            <AutocompleteInput
+              label="Bus Number"
+              data={fakeRouteNumbers}
+              value={busNumber}
+              onChange={(val) => {
+                setBusNumber(val);
+                setStartStop('');
+                setEndStop('');
+              }}
+              colorScheme={nowColorScheme}
+            />
 
-          <TextInput
-            placeholder="End Stop"
-            placeholderTextColor={Colors[nowColorScheme].subtext}
-            style={styles.input}
-            value={endStop}
-            onChangeText={setEndStop}
-          />
+            <AutocompleteInput
+              label="Start Stop"
+              data={stopOptions}
+              value={startStop}
+              onChange={setStartStop}
+              colorScheme={nowColorScheme}
+            />
 
-          <TextInput
-            placeholder="Bus Number"
-            placeholderTextColor={Colors[nowColorScheme].subtext}
-            style={styles.input}
-            value={busNumber}
-            onChangeText={setBusNumber}
-          />
+            <AutocompleteInput
+              label="End Stop"
+              data={stopOptions}
+              value={endStop}
+              onChange={setEndStop}
+              colorScheme={nowColorScheme}
+            />
 
+          
           <TouchableOpacity style={styles.button} onPress={handleCreateTrip}>
             <ThemedText style={styles.buttonText}>View on Map</ThemedText>
           </TouchableOpacity>
