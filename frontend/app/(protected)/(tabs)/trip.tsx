@@ -1,9 +1,10 @@
-import { useRouter } from 'expo-router';
-import React, { useState, useMemo} from 'react';
-import { Platform, StyleSheet, ScrollView, View, SafeAreaView, TextInput, TouchableOpacity, Alert, useColorScheme } from 'react-native';
-import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
+import { useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import { Alert, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AutocompleteInput from '@/components/AutocompleteInput';
 import { fakeRouteMap, fakeRouteNumbers } from '../lib/fakeRoutes';
@@ -12,7 +13,8 @@ export default function Trip() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
-  const styles = initStyles(nowColorScheme);
+  const insets = useSafeAreaInsets();
+  const styles = initstyles(nowColorScheme);
 
   // 輸入狀態
   const [startStop, setStartStop] = useState('');
@@ -51,7 +53,7 @@ export default function Trip() {
   return (
     <SafeAreaView style={styles.topBarContainer}>
       <View style={styles.topBar}>
-        <ThemedText style={styles.headerTitle}>Trip</ThemedText>
+        <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Trip</Text>
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -96,7 +98,7 @@ export default function Trip() {
   );
 }
 
-const initStyles = (nowColorScheme: 'light' | 'dark') => {
+const initstyles = (nowColorScheme: 'light' | 'dark') => {
   const styles = StyleSheet.create({
     topBarContainer: {
       flex: 1,
@@ -105,13 +107,32 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
     topBar: {
       backgroundColor: Colors[nowColorScheme].background,
       marginTop: 10,
-      paddingTop: Platform.OS === 'android' ? 25 : 0,
+      paddingBottom: 5,
+      paddingTop: Platform.OS === 'android' ? 25 : 0, // status bar padding for Android
       height: Platform.OS === 'android' ? 79 : 50,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 1,
       borderBottomColor: Colors[nowColorScheme].border,
       borderBottomWidth: 0.5,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+    },
+    scrollview: {
+      padding: 20,
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'transparent',
+      gap: 8,
+    },
+    stepContainer: {
+      gap: 8,
+      marginBottom: 8,
+      backgroundColor: 'transparent',
     },
     headerTitle: {
       fontSize: 28,
@@ -132,10 +153,6 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
       alignSelf: 'center',
       gap: 16,
       backgroundColor: 'transparent',
-    },
-    title: {
-      marginBottom: 24,
-      textAlign: 'center',
     },
     input: {
       width: '100%',
