@@ -12,7 +12,8 @@ import {
  */
 async function Signup(req, res) {
     try {
-        const result = await QuerySignup(req.body);
+        const { name, password } = req.body;
+        const result = await QuerySignup(name, password);
         return res.status(201).send(result);
     } catch (e) {
         console.error('Signup error:', e);
@@ -25,7 +26,8 @@ async function Signup(req, res) {
  */
 async function Login(req, res) {
     try {
-        const result = await QueryLogin(req.body);
+        const { name, password } = req.body;
+        const result = await QueryLogin(name, password);
         return res.status(200).send(result);
     } catch (e) {
         console.error('Login error:', e);

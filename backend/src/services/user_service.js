@@ -3,7 +3,7 @@ import db from "../database.js";
 
 async function FindUserById(userId) {
     const sql = `
-    SELECT id, account, name, role, partner_id
+    SELECT id, name, role, partner_id
     FROM users
     WHERE id = $1
   `;
@@ -14,27 +14,28 @@ async function FindUserById(userId) {
     return rows[0];
 }
 
-async function Signup({ name, phone_number, role, partner_id = null, account, password }) {
+async function Signup(name, password) {
     const sql = `
     INSERT INTO users
-      (name, phone_number, role, partner_id, account, password)
+      (sos_phone_number, role, partner_id, name, password)
     VALUES
-      ($1, $2, $3, $4, $5, $6)
-    RETURNING id, name, account, role, partner_id
+      (null, null, null, $1, $2)
+    RETURNING id, name, role, partner_id
   `;
-    const vals = [name, phone_number, role, partner_id, account, password];
+    const vals = [name, password];
     const { rows } = await db.query(sql, vals);
     return rows[0];
 }
 
-async function Login(account, password) {
+async function Login(name, password) {
+    console.log("Login:", name, password);
     const sql = `
-    SELECT id, account, name, role, partner_id
+    SELECT id, name, role, partner_id
     FROM users
-    WHERE account = $1
+    WHERE name = $1
       AND password = $2
   `;
-    const { rows } = await db.query(sql, [account, password]);
+    const { rows } = await db.query(sql, [name, password]);
     if (rows.length === 0) {
         throw new Error('Invalid account or password');
     }
