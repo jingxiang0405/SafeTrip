@@ -6,7 +6,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import AutocompleteInput from '@/components/AutocompleteInput';
-import { fakeRouteMap, fakeRouteNumbers } from '../lib/fakeRoutes';
+import { fakeRouteMap, fakeRouteNumbers } from '../../../assets/lib/fakeRoutes';
 
 export default function Trip() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function Trip() {
       return;
     }
 
-
+    
 
     // ✅ 導航到地圖頁面，傳遞 stops（站點陣列）與 trip 參數
     // ⚠️ 注意：這裡的 stops 是用 JSON.stringify 傳遞，未來 TDX 資料也可以這樣傳

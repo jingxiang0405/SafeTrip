@@ -19,11 +19,14 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "your-api-key-here"
+          "apiKey": "AIzaSyBFIzgZIVjmniL72umimkUlDrvPN_E4bEg"
         }
       },
       "package": "com.its.SafeTrip"
@@ -44,7 +47,14 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-maps"
+      [
+        "expo-maps",
+        {
+          "requestLocationPermission": true,
+          "locationPermission": "Allow $(PRODUCT_NAME) to use your location"
+        }
+      ]
+      
     ],
     "experiments": {
       "typedRoutes": true

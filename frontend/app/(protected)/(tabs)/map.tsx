@@ -6,7 +6,7 @@ import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
 import React, { useRef, useState } from "react";
 import { Alert, Button, Platform, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { locationList } from "../lib/LocationList.js";
+import { locationList } from "../../../assets/lib/LocationList.js";
 
 const SF_ZOOM = 12;
 
@@ -31,7 +31,7 @@ export default function HomeScreen() {
 
   function handleChangeWithRef(direction: "next" | "prev") {
     const newIndex = locationIndex + (direction === "next" ? 1 : -1);
-    // const nextLocation = locationList[newIndex];
+    const nextLocation = locationList[newIndex];
 
     // Set camera position first to ensure animation happens
     ref.current?.setCameraPosition({
