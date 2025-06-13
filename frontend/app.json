@@ -49,7 +49,7 @@
       [
         "expo-maps",
         {
-          "requestLocationPermission": false,
+          "requestLocationPermission": false
         }
       ]
       
