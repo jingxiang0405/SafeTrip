@@ -1,25 +1,38 @@
-version: '3.8'
-
 services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    depends_on:
-      - db
-    volumes:
-      - .:/app
-
   db:
     image: postgres:15
     restart: always
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  api:
+    build: .
+    restart: always
     env_file:
       - .env
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      PORT: ${PORT}
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
 
 volumes:
-  pgdata:
+  db-data:
+
+networks:
+  backend:
 
