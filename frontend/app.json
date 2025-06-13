@@ -23,7 +23,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "your-api-key-here"
+          "apiKey": "AIzaSyAnh1Onvetu2aEbLhs8D990RzMlFpBL2Ik"
         }
       },
       "package": "com.its.SafeTrip"

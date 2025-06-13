@@ -37,7 +37,7 @@ export default function Trip() {
 
 
     // ✅ 導航到地圖頁面，傳遞 stops（站點陣列）與 trip 參數
-    // ⚠️ 注意：這裡的 stops 是用 JSON.stringify 傳遞，未來 TDX 資料也可以這樣傳
+    const routeStops = fakeRouteMap[busNumber] ?? [];
     router.push({
       pathname: '/map',
       params: {
@@ -45,7 +45,7 @@ export default function Trip() {
         startStop,
         endStop,
         city: 'Taipei',
-        stops: JSON.stringify(fakeRouteMap[busNumber] ?? [])
+        stops: JSON.stringify(routeStops) // Remove the unnecessary quote escaping
       }
     });
   };
