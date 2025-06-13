@@ -2,9 +2,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import { Alert, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AuthContext } from '@/utils/authContext';
 
 import AutocompleteInput from '@/components/AutocompleteInput';
 import { fakeRouteMap, fakeRouteNumbers } from '../../../assets/lib/fakeRoutes';
@@ -15,6 +16,7 @@ export default function Trip() {
   const nowColorScheme: 'light' | 'dark' = colorScheme ?? 'light';
   const insets = useSafeAreaInsets();
   const styles = initstyles(nowColorScheme);
+  const authState = useContext(AuthContext);
 
   // 輸入狀態
   const [startStop, setStartStop] = useState('');
@@ -34,20 +36,22 @@ export default function Trip() {
       return;
     }
 
-    
+    const tripParams = {
+      busNumber,
+      startStop,
+      endStop,
+      city: 'Taipei',
+      stops: JSON.stringify(fakeRouteMap[busNumber] ?? [])
+    }
 
-    // ✅ 導航到地圖頁面，傳遞 stops（站點陣列）與 trip 參數
-    const routeStops = fakeRouteMap[busNumber] ?? [];
-    router.push({
-      pathname: '/map',
-      params: {
-        busNumber,
-        startStop,
-        endStop,
-        city: 'Taipei',
-        stops: JSON.stringify(routeStops) // Remove the unnecessary quote escaping
-      }
-    });
+    if(authState.role === 'caregiver'){
+      router.push({ pathname: '/map', params: tripParams})
+    }else if (authState.role === 'dependent'){
+      router.push({ pathname : '/busStatus', params: tripParams})
+    }else{
+      Alert.alert('錯誤', '尚未設定身份角色');
+    }
+
   };
 
   return (
