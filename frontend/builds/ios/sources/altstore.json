@@ -5,6 +5,7 @@
     {
       "name": "SafeTrip",
       "bundleIdentifier": "com.its.SafeTrip",
+      "developerName": "SafeTrip Team",
       "developer": "SafeTrip Team",
       "subtitle": "SafeTrip on iOS.",
       "version": "1.0.0",
