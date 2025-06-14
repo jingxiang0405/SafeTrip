@@ -13,6 +13,7 @@ type Partner = {
 type AuthState = {
     isLoggedIn: boolean;
     isReady: boolean;
+    userId: number;
     username?: string;
     role: string;
     pairedWith: Partner;
@@ -34,6 +35,7 @@ const authStorageKey = "auth-key";
 export const AuthContext = createContext<AuthState>({
     isLoggedIn: false,
     isReady: false,
+    userId: 0,
     username: "",
     role: "",
     pairedWith: null,
@@ -52,6 +54,7 @@ export const AuthContext = createContext<AuthState>({
 export function AuthProvider({ children }: PropsWithChildren) {
     const [isReady, setIsReady] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userId, setUserId] = useState<number>(0);
     const [username, setUsername] = useState<string>("");
     const [role, setRole] = useState<string>("");
     const [pairedWith, setPairedWith] = useState<Partner>(null);
@@ -61,6 +64,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const router = useRouter();
 
     const storeAuthState = async (auth: {
+        userId: number;
         username: string;
         token: string;
         role: string;
@@ -92,6 +96,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             
             // Then store the state
             await storeAuthState({ 
+                userId: userId,
                 username, 
                 token: userData.token, 
                 role, 
@@ -114,14 +119,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
         try {
             // TODO: Backend
             const newToken = "dummy-user-token";
-            
+            const newUserId = 0;
+
             // First update all states
             setIsLoggedIn(true);
             setUsername(username);
+            setUserId(newUserId);
             setToken(newToken);
             
             // Then store the state
             await storeAuthState({ 
+                userId: newUserId,
                 username, 
                 token: newToken, 
                 role, 
@@ -134,6 +142,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             console.error('Signup failed:', error);
             // Reset states on failure
             setIsLoggedIn(false);
+            setUserId(0);
             setUsername("");
             setToken("");
             throw error;
@@ -142,12 +151,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const logOut = () => {
         setIsLoggedIn(false);
+        setUserId(0);
         setUsername("");
         setToken("");
         setRole('');
         setPairedWith(null);
         setEmergencyContact("");
-        storeAuthState({ username: "", token: "", role: '', pairedWith: null, emergencyContact: "" });
+        storeAuthState({ userId:userId, username: "", token: "", role: '', pairedWith: null, emergencyContact: "" });
         AsyncStorage.removeItem(authStorageKey);
         router.replace("/login");
     };
@@ -158,6 +168,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setRole(newRole);
             // Then store the updated state
             await storeAuthState({ 
+                userId,
                 username, 
                 token, 
                 role: newRole, 
@@ -181,6 +192,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             // Use the passed role value or fall back to state
             const roleToUse = currentRole || role;
             await storeAuthState({ 
+                userId,
                 username, 
                 token, 
                 role: roleToUse,
@@ -198,7 +210,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         try {
             setPairedWith(null);
             setRole(''); // This is resetting the role!
-            await storeAuthState({ username, token, role: '', pairedWith: null, emergencyContact });
+            await storeAuthState({ userId, username, token, role: '', pairedWith: null, emergencyContact });
         } catch (error) {
             throw error;
         }
@@ -220,7 +232,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
             // Temporary local implementation
             setEmergencyContact(phone);
-            storeAuthState({ username, token, role, pairedWith, emergencyContact: phone });
+            storeAuthState({ userId, username, token, role, pairedWith, emergencyContact: phone });
         } catch (error) {
             console.error('Setting emergency contact failed:', error);
             throw error;
@@ -232,7 +244,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
             try {
                 const value = await AsyncStorage.getItem(authStorageKey);
                 if (value !== null) {
-                    const { username, token, role, pairedWith, emergencyContact } = JSON.parse(value);
+                    const { userId, username, token, role, pairedWith, emergencyContact } = JSON.parse(value);
+                    setUserId(userId);
                     setUsername(username);
                     setToken(token);
                     setRole(role);
@@ -252,6 +265,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 console.log("Error fetching from storage", e);
                 // Reset auth state on error
                 setIsLoggedIn(false);
+                setUserId(0);
                 setUsername("");
                 setToken("");
                 setRole("");
@@ -272,6 +286,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return (
         <AuthContext.Provider
             value={{
+                userId,
                 isLoggedIn,
                 isReady,
                 username,

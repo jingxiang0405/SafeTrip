@@ -68,6 +68,7 @@
       "typedRoutes": true
     },
     "extra": {
+      "BACKEND_URL": "http://localhost:3000",
       "router": {},
       "eas": {
         "projectId": "4383b6de-2518-44bb-99d7-b66fbfcd6a6a"
