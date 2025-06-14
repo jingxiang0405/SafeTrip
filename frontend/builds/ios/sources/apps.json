@@ -1,8 +1,10 @@
 {
   "name": "ITS Apps",
   "identifier": "com.its.official",
-  "sourceURL": "https://raw.githubusercontent.com/jingxiang0405/SafeTrip/release/frontend/builds/ios/sources/sidestore.json",
+  "subtitle": "ITS IPA Library",
+  "sourceURL": "https://raw.githubusercontent.com/jingxiang0405/SafeTrip/release/frontend/builds/ios/sources/apps.json",
   "iconURL": "https://raw.githubusercontent.com/jingxiang0405/SafeTrip/release/frontend/assets/images/icon.png",
+  "tintColor": "#4195df",
   "userinfo": {},
   "apps": [
     {
@@ -12,7 +14,6 @@
       "version": "1.0.0",
       "versionDate": "2025-06-14T00:00:00Z",
       "versionDescription": "# v1.0.0\n\n",
-      "downloadURL": "https://github.com/jingxiang0405/SafeTrip/releases/download/v1.0.0-alpha/SafeTrip-v1.0.0-debug-alpha.ipa",
       "localizedDescription": "Track your Family member whether they get on bus correctly.",
       "iconURL": "https://raw.githubusercontent.com/jingxiang0405/SafeTrip/release/frontend/assets/images/icon.png",
       "tintColor": "#4195df",
