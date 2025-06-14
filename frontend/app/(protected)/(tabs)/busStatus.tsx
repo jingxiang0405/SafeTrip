@@ -1,11 +1,32 @@
 import { useLocalSearchParams } from 'expo-router';
-import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView, Alert } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import * as Location from 'expo-location';
+import { useMockDependentLocation } from '@/hooks/useMockDependentLocation';
+
+const TARGET_STOP = {
+  name: '善導寺',
+  latitude: 25.0451,
+  longitude: 121.5235,
+};
+
+function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3; // 地球半徑（公尺）
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 export default function BusStatusScreen() {
   const { busNumber, startStop, endStop, stops } = useLocalSearchParams();
@@ -14,14 +35,50 @@ export default function BusStatusScreen() {
   const insets = useSafeAreaInsets();
   const styles = initStyles(nowColorScheme);
 
-  // 假設目前到站（可以用 setInterval 模擬動態更新）
-  const currentStopIndex = 2; // 假資料，目前是第 3 站
+  const [distance, setDistance] = useState<number | null>(null);
+  const [arrived, setArrived] = useState(false);
+
+  useMockDependentLocation(); 
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const loc = await Location.getCurrentPositionAsync({});
+        const dist = getDistanceMeters(
+          loc.coords.latitude,
+          loc.coords.longitude,
+          TARGET_STOP.latitude,
+          TARGET_STOP.longitude
+        );
+
+        setDistance(dist);
+
+        if (dist < 50 && !arrived) {
+          Alert.alert('提醒您下車', '已抵達善導寺站');
+          setArrived(true);
+        }
+      } catch (e) {
+        console.warn('定位失敗:', e);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [arrived]);
+
   let stopList: any[] = [];
   try {
     stopList = stops ? JSON.parse(stops as string) : [];
   } catch (e) {
     console.warn('無法解析 stops');
   }
+
+  const getNotice = () => {
+    if (distance === null) return '讀取位置中...';
+    if (distance < 50) return '提醒您下車';
+    if (distance < 150) return '即將到站';
+    return '尚未到站';
+  };
 
   return (
     <View style={styles.container}>
@@ -40,15 +97,10 @@ export default function BusStatusScreen() {
           <Text style={styles.label}>起點站：</Text>
           <Text style={styles.value}>{startStop}</Text>
 
-          <Text style={styles.label}>終點站：</Text>
-          <Text style={styles.value}>{endStop}</Text>
+          <Text style={styles.label}>目標站點：</Text>
+          <Text style={styles.currentStop}>{TARGET_STOP.name}</Text>
 
-          <Text style={styles.label}>目前到站：</Text>
-          <Text style={styles.currentStop}>
-            {stopList[currentStopIndex]?.StopName?.Zh_tw ?? '資料讀取中...'}
-          </Text>
-
-          <Text style={styles.notice}>即將提醒您下車</Text>
+          <Text style={styles.notice}>{getNotice()}</Text>
         </ThemedView>
       </ScrollView>
     </View>
