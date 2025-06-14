@@ -1,10 +1,10 @@
 # Dockerfile for SafeTrip backend
 # --------------------------------------------------
-# 使用 Node.js 18 + Alpine 作為基底
+# 使用 Node.js 22 + Alpine 作為基底
 # 安裝 psql client，複製程式與 SQL，並在容器啟動時執行資料庫初始化後啟動服務
 
-FROM node:18-alpine
-
+FROM node:22-alpine
+ENV PORT=3000
 # 安裝 Postgres client
 RUN apk add --no-cache postgresql-client
 
@@ -19,7 +19,7 @@ RUN npm install --production
 COPY . .
 
 # 對外開放 3000 端口
-EXPOSE 3000
+EXPOSE ${PORT}
 
 # 啟動時：等待 Postgres，就緒後執行 schema & seed，然後啟動應用
 

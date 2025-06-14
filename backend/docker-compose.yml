@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     restart: always
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
@@ -26,7 +26,7 @@ services:
     depends_on:
       - db
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
     networks:
       - backend
 
