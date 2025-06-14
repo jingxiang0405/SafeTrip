@@ -71,7 +71,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             const jsonValue = JSON.stringify(auth);
             await AsyncStorage.setItem(authStorageKey, jsonValue);
         } catch (e) {
-            console.warning("Failed to store auth state:", e);
+            console.warn("Failed to store auth state:", e);
             throw e;
         }
     };
