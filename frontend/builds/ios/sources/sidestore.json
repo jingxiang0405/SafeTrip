@@ -1,0 +1,36 @@
+{
+  "name": "ITS Apps",
+  "identifier": "com.its.official",
+  "sourceURL": "https://github.com/jingxiang0405/SafeTrip/raw/refs/heads/resource/frontend/builds/ios/sources/sidestore.json",
+  "iconURL": "https://github.com/jingxiang0405/SafeTrip/raw/refs/heads/resource/frontend/assets/images/icon.png",
+  "userinfo": {},
+  "apps": [
+    {
+      "name": "SafeTrip",
+      "bundleIdentifier": "com.its.SafeTrip",
+      "developerName": "SafeTrip Team",
+      "version": "1.0.0",
+      "versionDate": "2025-06-14T00:00:00Z",
+      "versionDescription": "# v1.0.0\n\n",
+      "downloadURL": "https://github.com/jingxiang0405/SafeTrip/releases/download/v1.0.0/SafeTrip_v1.0.0-debug.ipa",
+      "localizedDescription": "Track your Family member whether they get on bus correctly.",
+      "iconURL": "https://github.com/jingxiang0405/SafeTrip/raw/refs/heads/resource/frontend/assets/images/icon.png",
+      "tintColor": "#4195df",
+      "size": 91000000,
+      "screenshotURLs": [],
+      "subtitle": "SafeTrip on iOS.",
+      "absoluteVersion": "1.0.0",
+      "appID": "com.its.SafeTrip",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2025-06-14T00:00:00Z",
+          "downloadURL": "https://github.com/jingxiang0405/SafeTrip/releases/download/v1.0.0/SafeTrip_v1.0.0-debug.ipa",
+          "localizedDescription": "# v1.0.0\n\n",
+          "size": 91000000,
+          "absoluteVersion": "1.0.0"
+        }
+      ]
+    }
+  ]
+}
