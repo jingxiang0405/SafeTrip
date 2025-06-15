@@ -47,7 +47,8 @@ async function Login(req, res) {
 
         return res.status(200).send({
             ...result,
-            partner_name: partnerData.name,
+            partner_id: result.partner_id,
+            partner_name: partnerData?.name || '',
             token
         });
     } catch (e) {
