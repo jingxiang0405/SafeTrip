@@ -82,7 +82,7 @@ export default function PairingScreen() {
         };
     }, [step, checkPairing, pairResult]);
 
-    const handlePair = async (role: 'caregiver' | 'careReceiver') => {
+    const handlePair = async (role: 'caretaker' | 'careReceiver') => {
         try {
             setSelectedRole(role);
             if (role === 'careReceiver') {
@@ -120,7 +120,7 @@ export default function PairingScreen() {
         try {
             const result = await authState.submitPairCode(code);
             if (result.success) {
-                const newRole = 'caregiver';
+                const newRole = 'caretaker';
                 // First set role
                 await authState.selectRole(newRole);
                 
@@ -191,7 +191,7 @@ export default function PairingScreen() {
                             <Ionicons name="heart-outline" size={30} color={Colors[colorScheme].text} />
                             <Text style={styles.optionText}>我是被照顧者</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.optionBox} onPress={() => handlePair('caregiver')}>
+                        <TouchableOpacity style={styles.optionBox} onPress={() => handlePair('caretaker')}>
                             <Ionicons name="person-outline" size={30} color={Colors[colorScheme].text} />
                             <Text style={styles.optionText}>我是照護者</Text>
                         </TouchableOpacity>

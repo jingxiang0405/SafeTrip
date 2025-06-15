@@ -120,7 +120,7 @@ export default function Profile() {
                     <>
                         <MenuItem
                             icon={<FontAwesome5 name="user-shield" size={24} color={Colors[nowColorScheme].text} />}
-                            label={`目前身份：${authState.role === 'caregiver' ? '照護者' : '被照顧者'}`}
+                            label={`目前身份：${authState.role === 'caretaker' ? '照護者' : '被照顧者'}`}
                         />
                         <MenuItem
                             icon={<Ionicons name="people-outline" size={24} color={Colors[nowColorScheme].text} />}

@@ -306,20 +306,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
             if (response.data.success) {
                 console.log('Pairing completed:', response.data);
                 const partnerData = response.data;
-                setPairedWith({ id: partnerData.caregiverId, name: partnerData.caregiverName || '' });
-                setRole('caregiver');
+                setPairedWith({ id: partnerData.caretakerId, name: partnerData.caretakerName || '' });
+                setRole('caretaker');
                 
                 // Update stored state
                 await storeAuthState({
                     userId,
                     username,
                     token,
-                    role: 'caregiver',
-                    pairedWith: { id: partnerData.caregiverId, name: partnerData.caregiverId.toString() },
+                    role: 'caretaker',
+                    pairedWith: { id: partnerData.caretakerId, name: partnerData.caretakerId.toString() || '' },
                     emergencyContact
                 });
                 
-                return { success: true, partnerId: partnerData.caregiverId };
+                return { success: true, partnerId: partnerData.caretakerId };
             }
             return { success: false, partnerId: 0 };
         } catch (error) {
