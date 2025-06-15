@@ -100,7 +100,9 @@ async function CaretakerPair(req, res) {
     try {
         const code = req.params.code;
         const caretakerId = parseInt(req.params.caretakerId, 10);
+        const caretakerName = await FindUserById(caretakerId).name;
         const carereceiverId = PairWithCode(code);
+        const carereceiverName = await FindUserById(carereceiverId).name;
 
         if (!carereceiverId) {
             res.status(404).send({ message: "pairing failed" })
@@ -109,11 +111,11 @@ async function CaretakerPair(req, res) {
 
         UpdatePartner(caretakerId, carereceiverId);
         UpdatePartner(carereceiverId, caretakerId);
-        UpdateRole(caretakerId, "carereceiver");
-        UpdateRole(carereceiverId, "caretaker");
+        UpdateRole(caretakerId, "caretaker");
+        UpdateRole(carereceiverId, "careReceiver");
 
-        EmitPair(carereceiverId, { success: true, caretakerId });
-        res.status(200).send({ message: "pairing success", partnerId: carereceiverId });
+        EmitPair(carereceiverId, { success: true, caretakerId, caretakerName });
+        res.status(200).send({ message: "pairing success", partnerId: carereceiverId, partnerName: carereceiverName });
 
     } catch (e) {
         console.error(e);
@@ -127,17 +129,17 @@ async function CheckPairing(req, res) {
         const userId = parseInt(req.params.userId, 10);
         const isPaired = CheckPairStatus(userId);
         const user = await FindUserById(userId);
-        
+
         if (isPaired && user.partner_id) {
-            res.status(200).send({ 
+            res.status(200).send({
                 success: true,
                 message: "pairing success",
-                partnerId: user.partner_id 
+                partnerId: user.partner_id
             });
         } else {
-            res.status(200).send({ 
+            res.status(200).send({
                 success: false,
-                message: "not paired" 
+                message: "not paired"
             });
         }
     } catch (e) {

@@ -124,7 +124,7 @@ export default function Profile() {
                         />
                         <MenuItem
                             icon={<Ionicons name="people-outline" size={24} color={Colors[nowColorScheme].text} />}
-                            label={`配對對象：${authState.pairedWith ? authState.pairedWith.id : '尚未配對' }`}
+                            label={`配對對象：${authState.pairedWith ? authState.pairedWith.name : '尚未配對'}`}
                         />
                         {authState.pairedWith ? (
                             <MenuItem
@@ -158,7 +158,7 @@ export default function Profile() {
                         onPress={() => setShowModal(true)}
                     />
                 )}
-                
+
                 <MenuItem
                     icon={<Ionicons name="location-outline" size={24} color={Colors[nowColorScheme].text} />}
                     label="定位授權"

@@ -31,7 +31,7 @@ type AuthState = {
     pairWith: (partner: Partner, currentRole?: string) => void;
     unpair: () => void;
     setEmergencyContact: (phone: string) => void;
-    
+
     generatePairCode: () => Promise<string>;
     waitForPairComplete: () => Promise<{ success: boolean; partnerId: number }>;
     submitPairCode: (code: string) => Promise<{ success: boolean; partnerId: number }>;
@@ -100,9 +100,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 name: username,
                 password
             });
-            
+
             const userData = response.data;
-            
+
             // First update all states
             setUserId(userData.id);
             setIsLoggedIn(true);
@@ -110,17 +110,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setToken(userData.token);
             setRole(userData.role || '');
             setPairedWith(userData.partner_id ? { id: userData.partner_id, name: userData.partner_id.toString() } : null);
-            
+
             // Then store the state
-            await storeAuthState({ 
+            await storeAuthState({
                 userId: userData.id,
-                username: userData.name, 
-                token: userData.token, 
-                role: userData.role || '', 
-                pairedWith: userData.partner_id ? { id: userData.partner_id, name: userData.partner_id.toString() } : null, 
-                emergencyContact 
+                username: userData.name,
+                token: userData.token,
+                role: userData.role || '',
+                pairedWith: userData.partner_id ? { id: userData.partner_id, name: userData.partner_id.toString() } : null,
+                emergencyContact
             });
-            
+
             router.replace("/");
         } catch (error: any) {
             console.error('Login failed:', error);
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setIsLoggedIn(false);
             setUsername("");
             setToken("");
-            
+
             // Show error message to user
             Alert.alert(
                 "Login Failed",
@@ -157,17 +157,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setRole('');
             setPairedWith(null);
             setEmergencyContact("");
-            
+
             // Then store the state
-            await storeAuthState({ 
+            await storeAuthState({
                 userId: userData.id,
-                username: userData.name, 
-                token: userData.token, 
-                role: '', 
-                pairedWith: null, 
-                emergencyContact: "" 
+                username: userData.name,
+                token: userData.token,
+                role: '',
+                pairedWith: null,
+                emergencyContact: ""
             });
-            
+
             router.replace("/");
         } catch (error: any) {
             console.error('Signup failed:', error);
@@ -176,7 +176,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setUserId(0);
             setUsername("");
             setToken("");
-            
+
             // Show error message to user
             Alert.alert(
                 "Signup Failed",
@@ -200,13 +200,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setRole('');
             setPairedWith(null);
             setEmergencyContact("");
-            await storeAuthState({ 
-                userId: 0, 
-                username: "", 
-                token: "", 
-                role: '', 
-                pairedWith: null, 
-                emergencyContact: "" 
+            await storeAuthState({
+                userId: 0,
+                username: "",
+                token: "",
+                role: '',
+                pairedWith: null,
+                emergencyContact: ""
             });
             await AsyncStorage.removeItem(authStorageKey);
             router.replace("/login");
@@ -218,13 +218,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
             // First set the state
             setRole(newRole);
             // Then store the updated state
-            await storeAuthState({ 
+            await storeAuthState({
                 userId,
-                username, 
-                token, 
-                role: newRole, 
-                pairedWith, 
-                emergencyContact 
+                username,
+                token,
+                role: newRole,
+                pairedWith,
+                emergencyContact
             });
         } catch (error) {
             // Reset state on failure
@@ -242,13 +242,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setPairedWith(partner);
             // Use the passed role value or fall back to state
             const roleToUse = currentRole || role;
-            await storeAuthState({ 
+            await storeAuthState({
                 userId,
-                username, 
-                token, 
+                username,
+                token,
                 role: roleToUse,
-                pairedWith: partner, 
-                emergencyContact 
+                pairedWith: partner,
+                emergencyContact
             });
         } catch (error) {
             console.error('Pairing failed:', error);
@@ -307,18 +307,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 console.log('Pairing completed:', response.data);
                 const partnerData = response.data;
                 setPairedWith({ id: partnerData.caretakerId, name: partnerData.caretakerName || '' });
-                setRole('caretaker');
-                
+                setRole('careReceiver');
+
                 // Update stored state
                 await storeAuthState({
                     userId,
                     username,
                     token,
-                    role: 'caretaker',
-                    pairedWith: { id: partnerData.caretakerId, name: partnerData.caretakerId.toString() || '' },
+                    role: 'careReceiver',
+                    pairedWith: { id: partnerData.caretakerId, name: partnerData.caretakerName || '' },
                     emergencyContact
                 });
-                
+
                 return { success: true, partnerId: partnerData.caretakerId };
             }
             return { success: false, partnerId: 0 };
@@ -335,19 +335,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 const partnerData = response.data;
                 console.log('Pairing successful:', partnerData);
                 setPairedWith({ id: partnerData.partnerId, name: partnerData.partnerId.toString() });
-                console.log()
                 setRole('caretaker');
-                
+
                 // Update stored state
                 await storeAuthState({
                     userId,
                     username,
                     token,
                     role: 'caretaker',
-                    pairedWith: { id: partnerData.partnerId, name: partnerData.partnerId.toString() },
+                    pairedWith: { id: partnerData.partnerId, name: partnerData.partnerName },
                     emergencyContact
                 });
-                
+
                 return { success: true, partnerId: partnerData.partnerId };
             }
             return { success: false, partnerId: 0 };
