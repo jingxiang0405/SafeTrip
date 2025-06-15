@@ -93,7 +93,7 @@ export default function Profile() {
                     />
                     <View style={styles.profileText}>
                         <Text style={styles.username}>{authState.username}</Text>
-                        <Text style={styles.subtext}>帳戶資訊</Text>
+                        <Text style={styles.subtext}>{authState.userId}</Text>
                     </View>
                 </TouchableOpacity>
 
@@ -124,7 +124,7 @@ export default function Profile() {
                         />
                         <MenuItem
                             icon={<Ionicons name="people-outline" size={24} color={Colors[nowColorScheme].text} />}
-                            label={`配對對象：${authState.pairedWith ? authState.pairedWith.name : '尚未配對' }`}
+                            label={`配對對象：${authState.pairedWith ? authState.pairedWith.id : '尚未配對' }`}
                         />
                         {authState.pairedWith ? (
                             <MenuItem

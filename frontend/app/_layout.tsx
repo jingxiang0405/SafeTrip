@@ -10,10 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider } from '@/utils/authContext';
 import { Colors } from '@/constants/Colors';
 import * as SystemUI from 'expo-system-ui';
-import socketApi from '@/services/SocketApi';
 
-console.log('connecting...')
-socketApi.connect();
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const [loaded] = useFonts({

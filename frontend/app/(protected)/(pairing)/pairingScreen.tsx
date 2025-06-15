@@ -3,7 +3,7 @@ import { AuthContext } from '@/utils/authContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useContext, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Alert, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 export const unstable_settings = {
     presentation: 'modal',
@@ -24,23 +24,80 @@ export default function PairingScreen() {
 
     const inputRefs = Array.from({ length: 6 }, () => React.createRef<TextInput>());
 
+    // Function to periodically check pairing status
+    const checkPairing = React.useCallback(async () => {
+        if (step !== 'showCode' && step !== 'enterCode') return;
+
+        try {
+            // First check current status
+            const statusResult = await authState.checkPairStatus();
+            if (statusResult.success) {
+                setStep('choose'); // Reset to choose step
+                setPairResult('配對成功！等待按下完成以離開');
+                return;
+            }
+
+            // If not paired yet, wait for pairing
+            const result = await authState.waitForPairComplete();
+            if (result.success) {
+                setStep('choose'); // Reset to choose step
+                setPairResult('配對成功！等待按下完成以離開');
+                // authState.selectRole(selectedRole); // Set role after pairing
+                // authState.setPairedWith( { id: result.partner_id, name: '' });
+            }
+        } catch (error) {
+            console.warn('Check pairing status error:', error);
+            if (step === 'showCode' || step === 'enterCode') {
+                setStep('choose'); // Reset to choose step on error
+                router.back(); // Go back if error occurs
+            }
+            // setPairResult('配對過程中發生錯誤，請稍後再試');
+            // if (error.message?.includes('timeout')) {
+            //     // If timeout, just continue polling
+            //     setPairResult('正在等待照護者輸入配對代碼...');
+            // } else {
+            //     console.error('Checking pairing status failed:', error);
+            //     setPairResult('檢查配對狀態失敗，請重試');
+            // }
+        }
+    }, [router, step, authState]);
+
+    // Start checking when showing code
+    React.useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+        
+        async function pollPairingStatus() {
+            if (step === 'showCode' && !pairResult?.includes('成功')) {
+                await checkPairing();
+                timeoutId = setTimeout(pollPairingStatus, 5000); // Check every 5 seconds
+            }
+        }
+
+        pollPairingStatus();
+
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [step, checkPairing, pairResult]);
+
     const handlePair = async (role: 'caregiver' | 'careReceiver') => {
         try {
             setSelectedRole(role);
             if (role === 'careReceiver') {
-                // Generate code for 被照顧者
-                // TODO: Backend 
-                // Returns a random 6-digit code as string
-                // const code = await GenerateCode();
-                const code = '123456';
+                const code = await authState.generatePairCode();
                 setPairingCode(code);
                 setStep('showCode');
+                // Start checking for pairing completion
+                checkPairing();
             } else {
                 setStep('enterCode');
             }
         } catch (error) {
             console.error('Handle pair failed:', error);
             setSelectedRole('');
+            Alert.alert('Error', 'Failed to start pairing process. Please try again.');
         }
     };
 
@@ -61,33 +118,22 @@ export default function PairingScreen() {
         const code = inputCode.join('');
         setLoading(true);
         try {
-            // TODO: Backend
-            // const result = await PairWithCode(code);
-            const result = {
-                status: 200,
-                data: {
-                    username: "被照顧者A",
-                }
-            };
-
-            if (result.status === 200) {
+            const result = await authState.submitPairCode(code);
+            if (result.success) {
                 const newRole = 'caregiver';
                 // First set role
                 await authState.selectRole(newRole);
                 
-                // Then do pairing, passing the role we just set
-                await authState.pairWith({
-                    name: result.data.username ?? '', 
-                    id: 123
-                }, newRole); // Pass the role we just set
-                
-                setPairResult(`配對成功！對象：${result.data.username ?? "Unknown"}`);
-                router.back();
+                setPairResult(`配對成功！`);
+                setTimeout(() => {
+                    setStep('choose'); // Reset to choose step
+                    router.back();
+                }, 500); // Give user time to see success message
             } else {
                 setPairResult('配對失敗，請檢查代碼');
             }
         } catch (error) {
-            console.error('Pairing failed:', error);
+            console.warn('Pairing failed:', error);
             setPairResult('配對失敗，請稍後再試');
         } finally {
             setLoading(false);
@@ -96,21 +142,19 @@ export default function PairingScreen() {
 
     // For careReceiver, confirm after showing code
     const handleCareReceiverConfirm = async () => {
+        if (!pairResult?.includes('成功')) {
+            Alert.alert('提示', '尚未配對成功，請等待照護者輸入配對代碼');
+            return;
+        }
+        
         setLoading(true);
         try {
             const newRole = 'careReceiver';
             // First set role
             await authState.selectRole(newRole);
-            
-            // Then do pairing, passing the role we just set
-            await authState.pairWith({
-                name: '照護者A', 
-                id: 123
-            }, newRole); // Pass the role we just set
-            
             router.back();
         } catch (error) {
-            console.error('Setting care receiver failed:', error);
+            console.error('Setting care receiver role failed:', error);
             setPairResult('設定失敗，請稍後再試');
             setSelectedRole('');
             setPairingCode('');
@@ -143,26 +187,45 @@ export default function PairingScreen() {
                 {step === 'choose' && (
                     <>
                         <Text style={styles.title}>選擇您的身份</Text>
-                        <TouchableOpacity style={styles.optionBox} onPress={() => handlePair('caregiver')}>
-                            <Ionicons name="person-outline" size={30} color={Colors[colorScheme].text} />
-                            <Text style={styles.optionText}>我是照護者</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.optionBox} onPress={() => handlePair('careReceiver')}>
                             <Ionicons name="heart-outline" size={30} color={Colors[colorScheme].text} />
                             <Text style={styles.optionText}>我是被照顧者</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
+                        <TouchableOpacity style={styles.optionBox} onPress={() => handlePair('caregiver')}>
+                            <Ionicons name="person-outline" size={30} color={Colors[colorScheme].text} />
+                            <Text style={styles.optionText}>我是照護者</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.cancelButton} onPress={() => {
+                                handleCancel();
+                                router.back()
+                            }
+                        }>
                             <Text style={styles.cancelText}>取消</Text>
                         </TouchableOpacity>
                     </>
                 )}
                 {step === 'showCode' && (
                     <>
-                        <Text style={styles.title}>請讓照護者輸入此配對代碼</Text>
+                        <Text style={styles.title}>請讓照護者輸入配對代碼</Text>
                         <View style={styles.codeBox}>
                             <Text style={styles.codeText}>{pairingCode}</Text>
                         </View>
-                        <TouchableOpacity style={styles.optionBox} onPress={handleCareReceiverConfirm}>
+                        {pairResult && (
+                            <Text style={{ 
+                                fontSize: 16, 
+                                color: pairResult.includes('成功') ? 'green' : Colors[colorScheme].text,
+                                marginBottom: 20,
+                                textAlign: 'center'
+                            }}>
+                                {pairResult}
+                            </Text>
+                        )}
+                        <TouchableOpacity 
+                            style={[
+                                styles.optionBox,
+                                !pairResult?.includes('成功') && { opacity: 0.5 }
+                            ]} 
+                            onPress={handleCareReceiverConfirm}>
                             <Text style={styles.optionText}>完成</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
@@ -172,7 +235,7 @@ export default function PairingScreen() {
                 )}
                 {step === 'enterCode' && (
                     <>
-                        <Text style={styles.title}>請輸入被照顧者的6位配對代碼</Text>
+                        <Text style={styles.title}>請輸入配對代碼</Text>
                         <View style={styles.inputRow}>
                             {inputCode.map((v, i) => (
                                 <TextInput

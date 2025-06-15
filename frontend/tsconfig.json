@@ -13,8 +13,8 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "hooks/Mock Dependent Location",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "hooks/Mock Dependent Location"
+    "expo-env.d.ts"
   ]
 }

@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- 3. 建立 trip table
 CREATE TABLE IF NOT EXISTS trip (
   id            SERIAL          PRIMARY KEY,
-  caregiver_id  INTEGER         NOT NULL REFERENCES users(id),
   caretaker_id  INTEGER         NOT NULL REFERENCES users(id),
+  carereceiver_id  INTEGER         NOT NULL REFERENCES users(id),
   bus_id        INTEGER,
   bus_name      VARCHAR(100),
   start_station VARCHAR(100),
@@ -29,5 +29,5 @@ CREATE TABLE IF NOT EXISTS trip (
 );
 
 -- 4. 建立 index 以加速常用查詢（可選）
-CREATE INDEX IF NOT EXISTS idx_trip_caregiver ON trip(caregiver_id);
 CREATE INDEX IF NOT EXISTS idx_trip_caretaker ON trip(caretaker_id);
+CREATE INDEX IF NOT EXISTS idx_trip_carereceiver ON trip(carereceiver_id);

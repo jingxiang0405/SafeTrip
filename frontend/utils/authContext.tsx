@@ -1,6 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SplashScreen, useRouter } from "expo-router";
-import { createContext, PropsWithChildren, useEffect, useState } from "react";
+import { SplashScreen, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, PropsWithChildren, useEffect, useState } from 'react';
+import { api } from './apiConfig';
+import { Alert } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -9,6 +11,7 @@ type Partner = {
     id: number;
     name: string;
 } | null;
+
 
 type AuthState = {
     isLoggedIn: boolean;
@@ -23,12 +26,18 @@ type AuthState = {
     logIn: (username: string, password: string) => void;
     signUp: (username: string, email: string, phone: string, password: string) => void;
     logOut: () => void;
-
     selectRole: (newRole: string) => void;
+    setPairedWith: (partner: Partner) => void;
     pairWith: (partner: Partner, currentRole?: string) => void;
     unpair: () => void;
     setEmergencyContact: (phone: string) => void;
+    
+    generatePairCode: () => Promise<string>;
+    waitForPairComplete: () => Promise<{ success: boolean; partnerId: number }>;
+    submitPairCode: (code: string) => Promise<{ success: boolean; partnerId: number }>;
+    checkPairStatus: () => Promise<{ success: boolean; partnerId?: number }>;
 };
+
 
 const authStorageKey = "auth-key";
 
@@ -46,9 +55,14 @@ export const AuthContext = createContext<AuthState>({
     signUp: () => { },
     logOut: () => { },
     selectRole: () => { },
+    setPairedWith: () => { },
     pairWith: () => { },
     unpair: () => { },
     setEmergencyContact: () => { },
+    generatePairCode: async () => "",
+    waitForPairComplete: async () => ({ success: false, partnerId: 0 }),
+    submitPairCode: async () => ({ success: false, partnerId: 0 }),
+    checkPairStatus: async () => ({ success: false }),
 });
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -82,84 +96,121 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const logIn = async (username: string, password: string) => {
         try {
-            // TODO: Backend
-            const userData = {
-                token: "dummy-user-token",
-                role: role || '',
-                pairedWith: pairedWith
-            }
+            const response = await api.post('/user/login', {
+                name: username,
+                password
+            });
+            
+            const userData = response.data;
             
             // First update all states
+            setUserId(userData.id);
             setIsLoggedIn(true);
-            setUsername(username);
+            setUsername(userData.name);
             setToken(userData.token);
+            setRole(userData.role || '');
+            setPairedWith(userData.partner_id ? { id: userData.partner_id, name: userData.partner_id.toString() } : null);
             
             // Then store the state
             await storeAuthState({ 
-                userId: userId,
-                username, 
+                userId: userData.id,
+                username: userData.name, 
                 token: userData.token, 
-                role, 
-                pairedWith, 
+                role: userData.role || '', 
+                pairedWith: userData.partner_id ? { id: userData.partner_id, name: userData.partner_id.toString() } : null, 
                 emergencyContact 
             });
             
             router.replace("/");
-        } catch (error) {
+        } catch (error: any) {
             console.error('Login failed:', error);
             // Reset states on failure
             setIsLoggedIn(false);
             setUsername("");
             setToken("");
+            
+            // Show error message to user
+            Alert.alert(
+                "Login Failed",
+                error.response?.data?.message || "Invalid username or password"
+            );
             throw error;
         }
     };
 
     const signUp = async (username: string, email: string, phone: string, password: string) => {
         try {
-            // TODO: Backend
-            const newToken = "dummy-user-token";
-            const newUserId = 0;
+            const response = await api.post('/user/signup', {
+                name: username,
+                password,
+                email,
+                phone
+            });
+
+            const userData = response.data;
 
             // First update all states
             setIsLoggedIn(true);
-            setUsername(username);
-            setUserId(newUserId);
-            setToken(newToken);
+            setUsername(userData.name);
+            setUserId(userData.id);
+            setToken(userData.token);
+            setRole('');
+            setPairedWith(null);
+            setEmergencyContact("");
             
             // Then store the state
             await storeAuthState({ 
-                userId: newUserId,
-                username, 
-                token: newToken, 
-                role, 
-                pairedWith, 
-                emergencyContact 
+                userId: userData.id,
+                username: userData.name, 
+                token: userData.token, 
+                role: '', 
+                pairedWith: null, 
+                emergencyContact: "" 
             });
             
             router.replace("/");
-        } catch (error) {
+        } catch (error: any) {
             console.error('Signup failed:', error);
             // Reset states on failure
             setIsLoggedIn(false);
             setUserId(0);
             setUsername("");
             setToken("");
+            
+            // Show error message to user
+            Alert.alert(
+                "Signup Failed",
+                error.response?.data?.message || "Could not create account"
+            );
             throw error;
         }
     };
 
-    const logOut = () => {
-        setIsLoggedIn(false);
-        setUserId(0);
-        setUsername("");
-        setToken("");
-        setRole('');
-        setPairedWith(null);
-        setEmergencyContact("");
-        storeAuthState({ userId:userId, username: "", token: "", role: '', pairedWith: null, emergencyContact: "" });
-        AsyncStorage.removeItem(authStorageKey);
-        router.replace("/login");
+    const logOut = async () => {
+        try {
+            // Optionally call backend to invalidate token
+            // await api.post('/user/logout');
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            setIsLoggedIn(false);
+            setUserId(0);
+            setUsername("");
+            setToken("");
+            setRole('');
+            setPairedWith(null);
+            setEmergencyContact("");
+            await storeAuthState({ 
+                userId: 0, 
+                username: "", 
+                token: "", 
+                role: '', 
+                pairedWith: null, 
+                emergencyContact: "" 
+            });
+            await AsyncStorage.removeItem(authStorageKey);
+            router.replace("/login");
+        }
     };
 
     const selectRole = async (newRole: string) => {
@@ -239,6 +290,86 @@ export function AuthProvider({ children }: PropsWithChildren) {
         }
     };
 
+    const generatePairCode = async () => {
+        try {
+            const response = await api.get(`/user/pair/${userId}`);
+            return response.data.code;
+        } catch (error) {
+            console.error('Generate pair code failed:', error);
+            throw error;
+        }
+    };
+
+    const waitForPairComplete = async () => {
+        try {
+            const response = await api.get(`/user/pair/${userId}/subscribe`);
+            if (response.data.success) {
+                console.log('Pairing completed:', response.data);
+                const partnerData = response.data;
+                setPairedWith({ id: partnerData.caregiverId, name: partnerData.caregiverName || '' });
+                setRole('caregiver');
+                
+                // Update stored state
+                await storeAuthState({
+                    userId,
+                    username,
+                    token,
+                    role: 'caregiver',
+                    pairedWith: { id: partnerData.caregiverId, name: partnerData.caregiverId.toString() },
+                    emergencyContact
+                });
+                
+                return { success: true, partnerId: partnerData.caregiverId };
+            }
+            return { success: false, partnerId: 0 };
+        } catch (error) {
+            console.error('Wait for pair failed:', error);
+            throw error;
+        }
+    };
+
+    const submitPairCode = async (code: string) => {
+        try {
+            const response = await api.put(`/user/${userId}/pair/code/${code}`);
+            if (response.data.message === 'pairing success') {
+                const partnerData = response.data;
+                console.log('Pairing successful:', partnerData);
+                setPairedWith({ id: partnerData.partnerId, name: partnerData.partnerId.toString() });
+                console.log()
+                setRole('caretaker');
+                
+                // Update stored state
+                await storeAuthState({
+                    userId,
+                    username,
+                    token,
+                    role: 'caretaker',
+                    pairedWith: { id: partnerData.partnerId, name: partnerData.partnerId.toString() },
+                    emergencyContact
+                });
+                
+                return { success: true, partnerId: partnerData.partnerId };
+            }
+            return { success: false, partnerId: 0 };
+        } catch (error) {
+            console.warn('Submit pair code failed:', error);
+            throw error;
+        }
+    };
+
+    const checkPairStatus = async () => {
+        try {
+            const response = await api.get(`/user/pair/${userId}/status`);
+            return {
+                success: response.data.success,
+                partnerId: response.data.partnerId
+            };
+        } catch (error) {
+            console.error('Check pair status failed:', error);
+            return { success: false };
+        }
+    };
+
     useEffect(() => {
         const getAuthFromStorage = async () => {
             try {
@@ -299,8 +430,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 logOut,
                 selectRole,
                 pairWith,
+                setPairedWith,
                 unpair,
                 setEmergencyContact: handleSetEmergencyContact,
+                generatePairCode,
+                waitForPairComplete,
+                submitPairCode,
+                checkPairStatus,
             }}
         >
             {children}
