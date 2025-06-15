@@ -259,6 +259,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const unpair = async () => {
         try {
+            // TODO: implement backend 
             setPairedWith(null);
             setRole(''); // This is resetting the role!
             await storeAuthState({ userId, username, token, role: '', pairedWith: null, emergencyContact });
