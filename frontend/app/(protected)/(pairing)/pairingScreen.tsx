@@ -2,7 +2,7 @@ import { Colors } from '@/constants/Colors';
 import { AuthContext } from '@/utils/authContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef, useEffect, useCallback } from 'react'; // Added useRef, useEffect, useCallback
 import { Alert, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 export const unstable_settings = {
@@ -24,64 +24,78 @@ export default function PairingScreen() {
 
     const inputRefs = Array.from({ length: 6 }, () => React.createRef<TextInput>());
 
-    // Function to periodically check pairing status
-    const checkPairing = React.useCallback(async () => {
+    // useRef to hold the timeout ID for polling, ensuring it's consistent across re-renders
+    const pollTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    // Function to periodically check pairing status (memoized with useCallback)
+    const checkPairing = useCallback(async () => {
+        // Only proceed if we are in a pairing step
         if (step !== 'showCode' && step !== 'enterCode') return;
 
         try {
-            // First check current status
+            // First check current status from the backend
             const statusResult = await authState.checkPairStatus();
             if (statusResult.success) {
-                setStep('choose'); // Reset to choose step
+                // If already paired, set the success message.
+                // We do NOT call router.back() here for careReceiver; it's handled by '完成' button.
                 setPairResult('配對成功！等待按下完成以離開');
-                return;
+                return; // Stop further checks if already successful
             }
 
-            // If not paired yet, wait for pairing
-            const result = await authState.waitForPairComplete();
-            if (result.success) {
-                setStep('choose'); // Reset to choose step
-                setPairResult('配對成功！等待按下完成以離開');
-                router.back();
-                // authState.selectRole(selectedRole); // Set role after pairing
-                // authState.setPairedWith( { id: result.partner_id, name: '' });
+            // If not paired yet, wait for pairing completion (for careReceiver only)
+            if (step === 'showCode') { // Only careReceiver waits for external completion
+                console.log('Waiting for pairing...');
+                const result = await authState.waitForPairComplete();
+                if (result.success) {
+                    setPairResult('配對成功！等待按下完成以離開');
+                    // Again, router.back() is not called here directly.
+                }
             }
         } catch (error) {
             console.warn('Check pairing status error:', error);
-            if (step === 'showCode' || step === 'enterCode') {
-                setStep('choose'); // Reset to choose step on error
-                router.back(); // Go back if error occurs
-            }
-            // setPairResult('配對過程中發生錯誤，請稍後再試');
-            // if (error.message?.includes('timeout')) {
-            //     // If timeout, just continue polling
-            //     setPairResult('正在等待照護者輸入配對代碼...');
-            // } else {
-            //     console.error('Checking pairing status failed:', error);
-            //     setPairResult('檢查配對狀態失敗，請重試');
-            // }
+            // On error, show a message and potentially reset the step
+            setPairResult('配對過程中發生錯誤，請稍後再試');
+            setStep('choose'); // Reset to choose step on error
+            router.back(); // Go back if a significant error occurs
         }
-    }, [router, step, authState]);
+    }, [step, authState, router]); // Include router in dependencies as it's used in error handling
 
-    // Start checking when showing code
-    React.useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
-        
-        async function pollPairingStatus() {
-            if (step === 'showCode' && !pairResult?.includes('成功')) {
-                await checkPairing();
-                timeoutId = setTimeout(pollPairingStatus, 5000); // Check every 5 seconds
+    // Effect hook for managing the polling interval
+    useEffect(() => {
+        const startPolling = () => {
+            // Clear any existing timeout before scheduling a new one to prevent accumulation
+            if (pollTimeoutIdRef.current) {
+                clearTimeout(pollTimeoutIdRef.current);
+                pollTimeoutIdRef.current = undefined;
             }
+            // Schedule the next check
+            pollTimeoutIdRef.current = setTimeout(async () => {
+                await checkPairing(); // Perform the check
+                // If not yet successful, reschedule
+                if (step === 'showCode' && !pairResult?.includes('成功')) {
+                    startPolling(); // Recursive call to schedule next poll
+                }
+            }, 5000);
+        };
+
+        // If currently showing code and not yet successfully paired, start the initial check and polling
+        if (step === 'showCode' && !pairResult?.includes('成功')) {
+            checkPairing(); // Initial immediate check
+            startPolling(); // Start the polling cycle
+        } else if (pairResult?.includes('成功') && pollTimeoutIdRef.current) {
+            // If pairing became successful, stop any active polling
+            clearTimeout(pollTimeoutIdRef.current);
+            pollTimeoutIdRef.current = undefined;
         }
 
-        pollPairingStatus();
-
+        // Cleanup function: This runs when the component unmounts or before the effect re-runs
         return () => {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
+            if (pollTimeoutIdRef.current) {
+                clearTimeout(pollTimeoutIdRef.current);
+                pollTimeoutIdRef.current = undefined;
             }
         };
-    }, [step, checkPairing, pairResult]);
+    }, [step, pairResult, checkPairing]); // Dependencies: re-run if step, pairResult, or checkPairing changes
 
     const handlePair = async (role: 'caretaker' | 'careReceiver') => {
         try {
@@ -90,10 +104,11 @@ export default function PairingScreen() {
                 const code = await authState.generatePairCode();
                 setPairingCode(code);
                 setStep('showCode');
-                // Start checking for pairing completion
-                checkPairing();
+                setPairResult(null); // Clear previous pair result
+                // Polling starts automatically via useEffect
             } else {
                 setStep('enterCode');
+                setPairResult(null); // Clear previous pair result
             }
         } catch (error) {
             console.error('Handle pair failed:', error);
@@ -107,25 +122,20 @@ export default function PairingScreen() {
             const arr = [...inputCode];
             arr[idx] = text;
             setInputCode(arr);
-            // Auto focus next field if filled (native, not document)
             if (text && idx < 5) {
                 inputRefs[idx + 1].current?.focus();
             }
         }
     };
 
-    // When pairing is successful, THEN set role in context
     const handleVerify = async () => {
         const code = inputCode.join('');
         setLoading(true);
         try {
             const result = await authState.submitPairCode(code);
             if (result.success) {
-                const newRole = 'caretaker';
-                // First set role
-                await authState.selectRole(newRole);
-                
-                setPairResult(`配對成功！`);
+                setPairResult('配對成功！');
+                // For caretaker, we can navigate back immediately after successful submission
                 setTimeout(() => {
                     setStep('choose'); // Reset to choose step
                     router.back();
@@ -147,13 +157,14 @@ export default function PairingScreen() {
             Alert.alert('提示', '尚未配對成功，請等待照護者輸入配對代碼');
             return;
         }
-        
+
         setLoading(true);
         try {
-            const newRole = 'careReceiver';
-            // First set role
-            await authState.selectRole(newRole);
-            router.back();
+            // Role should already be set by waitForPairComplete in authContext.tsx,
+            // but we can ensure it's persisted and then navigate.
+            await authState.selectRole('careReceiver');
+            console.log('router.back(); handleCareReceiverConfirm！');
+            router.back(); // Navigate back only ONCE after user confirms
         } catch (error) {
             console.error('Setting care receiver role failed:', error);
             setPairResult('設定失敗，請稍後再試');
@@ -164,7 +175,7 @@ export default function PairingScreen() {
         }
     };
 
-    // Cancel: reset local state, do not set role
+    // Cancel: reset local state and unpair from context
     const handleCancel = async () => {
         try {
             await authState.unpair();
@@ -173,7 +184,8 @@ export default function PairingScreen() {
             setPairingCode('');
             setInputCode(['', '', '', '', '', '']);
             setPairResult(null);
-            router.back();
+            console.log('router.back(); handleCancel');
+            router.back(); // Navigate back
         } catch (error) {
             console.error('Cancel failed:', error);
         } finally {
@@ -196,11 +208,7 @@ export default function PairingScreen() {
                             <Ionicons name="person-outline" size={30} color={Colors[colorScheme].text} />
                             <Text style={styles.optionText}>我是照護者</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.cancelButton} onPress={() => {
-                                handleCancel();
-                                router.back()
-                            }
-                        }>
+                        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
                             <Text style={styles.cancelText}>取消</Text>
                         </TouchableOpacity>
                     </>
@@ -225,8 +233,10 @@ export default function PairingScreen() {
                             style={[
                                 styles.optionBox,
                                 !pairResult?.includes('成功') && { opacity: 0.5 }
-                            ]} 
-                            onPress={handleCareReceiverConfirm}>
+                            ]}
+                            onPress={handleCareReceiverConfirm}
+                            disabled={!pairResult?.includes('成功')} // Disable until successful
+                        >
                             <Text style={styles.optionText}>完成</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
