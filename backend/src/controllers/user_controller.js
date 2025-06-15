@@ -41,8 +41,11 @@ async function Login(req, res) {
         const result = await QueryLogin(name, password);
         // Generate a simple token - in production you'd use JWT
         const token = Buffer.from(`${name}:${new Date().getTime()}`).toString('base64');
+
+        const partner_name = await FindUserById(result.partner_id).name;
         return res.status(200).send({
             ...result,
+            partner_name,
             token
         });
     } catch (e) {

@@ -109,7 +109,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setUsername(userData.name);
             setToken(userData.token);
             setRole(userData.role || '');
-            setPairedWith(userData.partner_id ? { id: userData.partner_id, name: userData.partner_id.toString() } : null);
+            setPairedWith(userData.partner_id ? { id: userData.partner_id, name: userData.partner_name } : null);
 
             // Then store the state
             await storeAuthState({
@@ -117,7 +117,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 username: userData.name,
                 token: userData.token,
                 role: userData.role || '',
-                pairedWith: userData.partner_id ? { id: userData.partner_id, name: userData.partner_id.toString() } : null,
+                pairedWith: userData.partner_id ? { id: userData.partner_id, name: userData.partner_name } : null,
                 emergencyContact
             });
 
@@ -334,7 +334,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             if (response.data.message === 'pairing success') {
                 const partnerData = response.data;
                 console.log('Pairing successful:', partnerData);
-                setPairedWith({ id: partnerData.partnerId, name: partnerData.partnerId.toString() });
+                setPairedWith({ id: partnerData.partnerId, name: partnerData.partnerName });
                 setRole('caretaker');
 
                 // Update stored state
