@@ -42,6 +42,7 @@ export default function PairingScreen() {
             if (result.success) {
                 setStep('choose'); // Reset to choose step
                 setPairResult('配對成功！等待按下完成以離開');
+                router.back();
                 // authState.selectRole(selectedRole); // Set role after pairing
                 // authState.setPairedWith( { id: result.partner_id, name: '' });
             }
