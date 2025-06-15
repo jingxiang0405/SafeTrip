@@ -10,7 +10,8 @@ async function FindUserById(userId) {
   `;
     const { rows } = await db.query(sql, [userId]);
     if (rows.length === 0) {
-        throw new Error('User not found');
+        console.error('User not found');
+        return null;
     }
     return rows[0];
 }

@@ -9,7 +9,6 @@ function cleanupExpiredCodes() {
 
     console.log(`[${new Date(now)}] cleanup expired codes`);
     pairing_lists = pairing_lists.filter(({ createdAt }) => now - createdAt < CODE_EXPIRY_MS);
-    console.log("pairing list is now : ", pairing_lists)
 }
 
 /**

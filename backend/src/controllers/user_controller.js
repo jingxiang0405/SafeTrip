@@ -42,10 +42,12 @@ async function Login(req, res) {
         // Generate a simple token - in production you'd use JWT
         const token = Buffer.from(`${name}:${new Date().getTime()}`).toString('base64');
 
-        const partner_name = await FindUserById(result.partner_id).name;
+        const partnerData = await FindUserById(result.partner_id);
+
+
         return res.status(200).send({
             ...result,
-            partner_name,
+            partner_name: partnerData.name,
             token
         });
     } catch (e) {
@@ -79,7 +81,6 @@ async function CarereceiverStartPairing(req, res) {
         }
 
         const code = GenerateCode(carereceiverId);
-
         res.status(200).send({ code });
     } catch (e) {
 
@@ -103,9 +104,11 @@ async function CaretakerPair(req, res) {
     try {
         const code = req.params.code;
         const caretakerId = parseInt(req.params.caretakerId, 10);
-        const caretakerName = await FindUserById(caretakerId).name;
+
+        const caretakerData = await FindUserById(caretakerId);
+
         const carereceiverId = PairWithCode(code);
-        const carereceiverName = await FindUserById(carereceiverId).name;
+        const carereceiverData = await FindUserById(carereceiverId);
 
         if (!carereceiverId) {
             res.status(404).send({ message: "pairing failed" })
@@ -117,8 +120,8 @@ async function CaretakerPair(req, res) {
         UpdateRole(caretakerId, "caretaker");
         UpdateRole(carereceiverId, "careReceiver");
 
-        EmitPair(carereceiverId, { success: true, caretakerId, caretakerName });
-        res.status(200).send({ message: "pairing success", partnerId: carereceiverId, partnerName: carereceiverName });
+        EmitPair(carereceiverId, { success: true, caretakerId, caretakerName: caretakerData.name });
+        res.status(200).send({ message: "pairing success", partnerId: carereceiverId, partnerName: carereceiverData.name });
 
     } catch (e) {
         console.error(e);
