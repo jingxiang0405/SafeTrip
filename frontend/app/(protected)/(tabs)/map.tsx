@@ -7,18 +7,40 @@ import { locationList } from "../../../assets/lib/LocationList.js";
 import { AppleMaps, GoogleMaps } from 'expo-maps';
 import { Platform, View, Text, Alert, Linking } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect ,useState} from 'react';
 import * as Location from 'expo-location';
 import { fakeBusPositions } from '@/assets/lib/fakeData';
+import { fakeShapeMap } from '@/assets/lib/fakeShapes';
+import { getMockDependentLocation } from '@/hooks/useMockDependentLocation';
+import busIcon from '@/assets/images/bus.png';
+import stopIcon from '@/assets/images/stop.png';
+import dependentIcon from '@/assets/images/dependent.png';
 
 
-type StopMarker = {
+type StopMarker = { 
   latitude: number;
   longitude: number;
   title: string;
 };
 
+
+
 export default function Map() {
+
+  const [dependentLocation, setDependentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  // 載入後定期取得
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const loc = await getMockDependentLocation();
+      if (loc) setDependentLocation(loc);
+    }, 10000); // 每 10 秒抓一次
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+
   // Request location permissions
   useEffect(() => {
     const requestLocationPermissions = async () => {
@@ -64,6 +86,7 @@ export default function Map() {
 
   const params = useLocalSearchParams();
   const stopsParam = params.stops as string | undefined;
+  const shapePoints = fakeShapeMap[params.busNumber as string] ?? [];
   
   // Safely parse stops with error handling
   const stops = React.useMemo(() => {
@@ -105,26 +128,59 @@ export default function Map() {
     longitudeDelta: 0.01
   };
 
-  const markers = [
-    ...stopMarkers.map(marker => ({
-      coordinate: { latitude: marker.latitude, longitude: marker.longitude },
-      title: marker.title,
-      color: 'blue'
-    })),
-    ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
-      coordinate: bus,
-      title: `Bus ${index + 1}`,
-      color: 'red'
-    })) : [])
+  const markersGoogle = [
+  ...stopMarkers.map((marker, index) => ({
+    coordinates: { latitude: marker.latitude, longitude: marker.longitude },
+    title: `${index + 1}. ${marker.title}`,
+    snippet : "站點",
+    //icon : busIcon,
+  })),
+  ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
+    coordinates: bus,
+    title: `Bus ${index + 1}`,
+    snippet : "即時位置",
+    //icon : stopIcon,
+  })) : []),
+  ...(dependentLocation
+  ? [{
+      coordinates: dependentLocation,
+      title: '被照顧者位置',
+      snippet : "ˇ",
+      
+    }]
+  : [])
   ];
-
-  const polyline = stops.length > 0 ? {
-    coordinates: stopMarkers.map(marker => ({
-      latitude: marker.latitude,
-      longitude: marker.longitude
+  const markersApple = [
+  ...stopMarkers.map((marker, index) => ({
+    coordinates: { latitude: marker.latitude, longitude: marker.longitude },
+    title: `${index + 1}. ${marker.title}`,
+    tintColor: 'deepskyblue',
+    systemImage: 'bus',
+  })),
+  ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
+    coordinates: bus,
+    title: `Bus ${index + 1}`,
+    tintColor: 'crimson',
+    systemImage: 'signpost.right',
+  })) : []),
+  ...(dependentLocation
+  ? [{
+    
+    coordinates: dependentLocation,
+    title: '被照顧者位置',
+    tintColor: 'orange',
+    systemImage: 'person.circle.fill',
+    }]
+  : [])
+  ];
+  //TODO 引入公車路線 畫出公車路線圖
+  const polyline = shapePoints.length > 0 ? {
+    coordinates: shapePoints.map(p => ({
+      latitude: p.lat,
+      longitude: p.lon,
     })),
     strokeColor: 'blue',
-    strokeWidth: 3
+    strokeWidth: 4,
   } : undefined;
 
   if (Platform.OS === 'ios') {
@@ -138,8 +194,9 @@ export default function Map() {
           },
           zoom: 15,
         }}
-        markers={markers}
         polylines={polyline ? [polyline] : []}
+        markers={markersApple}
+        
       />
     );
   } else if (Platform.OS === 'android') {
@@ -153,8 +210,9 @@ export default function Map() {
           },
           zoom: 15,
         }}
-        markers={markers}
         polylines={polyline ? [polyline] : []}
+        markers={markersGoogle}
+        
       />
     );
   } else {

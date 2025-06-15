@@ -44,14 +44,11 @@ export default function Trip() {
       stops: JSON.stringify(fakeRouteMap[busNumber] ?? [])
     }
 
-    if(authState.role === 'caregiver'){
+    if(authState.role === 'caretaker'){
       router.push({ pathname: '/map', params: tripParams})
-    }else if (authState.role === 'dependent'){
+    }else {
       router.push({ pathname : '/busStatus', params: tripParams})
-    }else{
-      Alert.alert('錯誤', '尚未設定身份角色');
     }
-
   };
 
   return (
