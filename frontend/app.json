@@ -1,7 +1,7 @@
 {
     "expo": {
         "name": "SafeTrip",
-        "slug": "SafeTrip",
+        "slug": "safetrip",
         "version": "1.0.0",
         "orientation": "default",
         "icon": "./assets/images/icon.png",
@@ -9,14 +9,36 @@
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
         "ios": {
-            "supportsTablet": true
+            "supportsTablet": true,
+            "bundleIdentifier": "com.its.SafeTrip",
+            "infoPlist": {
+                "UIBackgroundModes": [
+                    "location",
+                    "fetch",
+                    "remote-notification"
+                ],
+                "NSLocationWhenInUseUsageDescription": "This app requires access to your location when open.",
+                "NSLocationAlwaysAndWhenInUseUsageDescription": "This app requires access to your location even when closed.",
+                "NSLocationAlwaysUsageDescription": "This app requires access to your location when open."
+            }
         },
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#ffffff"
             },
-            "edgeToEdgeEnabled": true
+            "edgeToEdgeEnabled": true,
+            "permissions": [
+                "ACCESS_FINE_LOCATION",
+                "ACCESS_COARSE_LOCATION",
+                "ACCESS_BACKGROUND_LOCATION"
+            ],
+            "config": {
+                "googleMaps": {
+                    "apiKey": "AIzaSyBFIzgZIVjmniL72umimkUlDrvPN_E4bEg"
+                }
+            },
+            "package": "com.its.SafeTrip"
         },
         "web": {
             "bundler": "metro",
@@ -33,13 +55,24 @@
                     "resizeMode": "contain",
                     "backgroundColor": "#ffffff"
                 }
+            ],
+            [
+                "expo-maps",
+                {
+                    "requestLocationPermission": false
+                }
             ]
         ],
         "experiments": {
             "typedRoutes": true
         },
         "extra": {
-            "SOCKET_URL": "http://localhost:3000"
-        }
+            "BACKEND_URL": "https://api-safetrip.dddanielliu.com/",
+            "router": {},
+            "eas": {
+                "projectId": "4383b6de-2518-44bb-99d7-b66fbfcd6a6a"
+            }
+        },
+        "owner": "safetrip"
     }
 }

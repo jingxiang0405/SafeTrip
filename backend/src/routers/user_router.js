@@ -4,10 +4,10 @@ import {
     Signup,
     Login,
     GetUserData,
-    CaretakerStartPairing,
-    CaregiverPair,
-    CaretakerPairingSubscribe
-
+    CarereceiverStartPairing,
+    CaretakerPair,
+    CarereceiverPairingSubscribe,
+    CheckPairing
 
 } from "#src/controllers/user_controller.js";
 
@@ -22,13 +22,16 @@ router.post("/signup", Signup);
 // 配對照顧者與被照顧者
 
 // 產生驗證碼
-router.get("/pair/:caretakerId", CaretakerStartPairing);
+router.get("/pair/:carereceiverId", CarereceiverStartPairing);
 
 // 等待配對
-router.get("/pair/:caretakerId/subscribe", CaretakerPairingSubscribe)
+router.get("/pair/:carereceiverId/subscribe", CarereceiverPairingSubscribe);
+
+// 檢查配對狀態
+router.get("/pair/:userId/status", CheckPairing);
 
 // 配對
-router.put("/:caregiverId/pair/code/:code", CaregiverPair);
+router.put("/:caretakerId/pair/code/:code", CaretakerPair);
 
 
 export default router;

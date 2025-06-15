@@ -1,4 +1,4 @@
-import { EmitPair, GenerateCode, PairWithCode, WaitForPair } from "#src/services/pair_service.js";
+import { EmitPair, GenerateCode, PairWithCode, WaitForPair, CheckPairStatus } from "#src/services/pair_service.js";
 import {
     Signup as QuerySignup,
     Login as QueryLogin,
@@ -8,13 +8,21 @@ import {
 } from "#src/services/user_service.js";
 
 /**
- * Create a new user (caregiver or caretaker)
+ * Create a new user (caretaker or carereceiver)
  */
 async function Signup(req, res) {
     try {
         const { name, password } = req.body;
+        if (!name || !password) {
+            return res.status(400).send({ message: "Missing required fields" });
+        }
         const result = await QuerySignup(name, password);
-        return res.status(201).send(result);
+        // Generate a simple token - in production you'd use JWT
+        const token = Buffer.from(`${name}:${new Date().getTime()}`).toString('base64');
+        return res.status(201).send({
+            ...result,
+            token
+        });
     } catch (e) {
         console.error('Signup error:', e);
         res.status(400).send({ message: "Signup error" });
@@ -27,11 +35,25 @@ async function Signup(req, res) {
 async function Login(req, res) {
     try {
         const { name, password } = req.body;
+        if (!name || !password) {
+            return res.status(400).send({ message: "Missing required fields" });
+        }
         const result = await QueryLogin(name, password);
-        return res.status(200).send(result);
+        // Generate a simple token - in production you'd use JWT
+        const token = Buffer.from(`${name}:${new Date().getTime()}`).toString('base64');
+
+        const partnerData = await FindUserById(result.partner_id);
+
+
+        return res.status(200).send({
+            ...result,
+            partner_id: result.partner_id,
+            partner_name: partnerData?.name || '',
+            token
+        });
     } catch (e) {
         console.error('Login error:', e);
-        res.status(401).send({ message: "Login error" });
+        res.status(401).send({ message: "Invalid credentials" });
     }
 }
 
@@ -50,17 +72,16 @@ async function GetUserData(req, res) {
 }
 
 
-async function CaretakerStartPairing(req, res) {
+async function CarereceiverStartPairing(req, res) {
     try {
-        const caretakerId = parseInt(req.params.caretakerId, 10);
-        const caregiverData = await FindUserById(caretakerId);
-        if (!caregiverData) {
+        const carereceiverId = parseInt(req.params.carereceiverId, 10);
+        const caretakerData = await FindUserById(carereceiverId);
+        if (!caretakerData) {
             res.status(404).send({ message: "user not found" })
             return;
         }
 
-        const code = GenerateCode(caretakerId);
-
+        const code = GenerateCode(carereceiverId);
         res.status(200).send({ code });
     } catch (e) {
 
@@ -69,35 +90,39 @@ async function CaretakerStartPairing(req, res) {
     }
 }
 
-async function CaretakerPairingSubscribe(req, res) {
+async function CarereceiverPairingSubscribe(req, res) {
     try {
 
-        const caretakerId = parseInt(req.params.caretakerId, 10);
-        const payload = await WaitForPair(caretakerId);
+        const carereceiverId = parseInt(req.params.carereceiverId, 10);
+        const payload = await WaitForPair(carereceiverId);
         res.status(200).send(payload);
     } catch (e) {
         console.error(e);
         res.status(408).send({ message: "Pairing time out" })
     }
 }
-async function CaregiverPair(req, res) {
+async function CaretakerPair(req, res) {
     try {
         const code = req.params.code;
-        const caregiverId = parseInt(req.params.caregiverId, 10);
-        const caretakerId = PairWithCode(code);
+        const caretakerId = parseInt(req.params.caretakerId, 10);
 
-        if (!caretakerId) {
+        const caretakerData = await FindUserById(caretakerId);
+
+        const carereceiverId = PairWithCode(code);
+        const carereceiverData = await FindUserById(carereceiverId);
+
+        if (!carereceiverId) {
             res.status(404).send({ message: "pairing failed" })
             return;
         }
 
-        UpdatePartner(caregiverId, caretakerId);
-        UpdatePartner(caretakerId, caregiverId);
-        UpdateRole(caregiverId, "caretaker");
-        UpdateRole(caretakerId, "caregiver");
+        UpdatePartner(caretakerId, carereceiverId);
+        UpdatePartner(carereceiverId, caretakerId);
+        UpdateRole(caretakerId, "caretaker");
+        UpdateRole(carereceiverId, "careReceiver");
 
-        EmitPair(caretakerId, { success: true, caregiverId });
-        res.status(200).send({ message: "pairing success", partnerId: caretakerId });
+        EmitPair(carereceiverId, { success: true, caretakerId, caretakerName: caretakerData.name });
+        res.status(200).send({ message: "pairing success", partnerId: carereceiverId, partnerName: carereceiverData.name });
 
     } catch (e) {
         console.error(e);
@@ -105,12 +130,38 @@ async function CaregiverPair(req, res) {
     }
 
 }
+
+async function CheckPairing(req, res) {
+    try {
+        const userId = parseInt(req.params.userId, 10);
+        const isPaired = CheckPairStatus(userId);
+        const user = await FindUserById(userId);
+
+        if (isPaired && user.partner_id) {
+            res.status(200).send({
+                success: true,
+                message: "pairing success",
+                partnerId: user.partner_id
+            });
+        } else {
+            res.status(200).send({
+                success: false,
+                message: "not paired"
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(400).send({ message: "check pairing error" });
+    }
+}
+
 export {
     Signup,
     Login,
     GetUserData,
-    CaretakerStartPairing,
-    CaretakerPairingSubscribe,
-    CaregiverPair
+    CarereceiverStartPairing,
+    CarereceiverPairingSubscribe,
+    CaretakerPair,
+    CheckPairing
 };
 

@@ -1,4 +1,5 @@
 import db from "../database.js";
+import { hashPassword, comparePasswords } from "../utils/passwordUtils.js";
 
 
 async function FindUserById(userId) {
@@ -9,12 +10,25 @@ async function FindUserById(userId) {
   `;
     const { rows } = await db.query(sql, [userId]);
     if (rows.length === 0) {
-        throw new Error('User not found');
+        console.error('User not found');
+        return null;
     }
     return rows[0];
 }
 
 async function Signup(name, password) {
+    // First check if user already exists
+    const checkSql = `
+    SELECT id FROM users WHERE name = $1
+    `;
+    const existingUser = await db.query(checkSql, [name]);
+    if (existingUser.rows.length > 0) {
+        throw new Error('Username already taken');
+    }
+
+    // Hash the password
+    const hashedPassword = await hashPassword(password);
+
     const sql = `
     INSERT INTO users
       (sos_phone_number, role, partner_id, name, password)
@@ -22,24 +36,32 @@ async function Signup(name, password) {
       (null, null, null, $1, $2)
     RETURNING id, name, role, partner_id
   `;
-    const vals = [name, password];
+    const vals = [name, hashedPassword];
     const { rows } = await db.query(sql, vals);
     return rows[0];
 }
 
 async function Login(name, password) {
-    console.log("Login:", name, password);
     const sql = `
-    SELECT id, name, role, partner_id
+    SELECT id, name, role, partner_id, password
     FROM users
     WHERE name = $1
-      AND password = $2
   `;
-    const { rows } = await db.query(sql, [name, password]);
+    const { rows } = await db.query(sql, [name]);
     if (rows.length === 0) {
         throw new Error('Invalid account or password');
     }
-    return rows[0];
+
+    const user = rows[0];
+    const isPasswordValid = await comparePasswords(password, user.password);
+
+    if (!isPasswordValid) {
+        throw new Error('Invalid account or password');
+    }
+
+    // Don't return the password hash
+    delete user.password;
+    return user;
 }
 
 // SetRole：更新使用者角色

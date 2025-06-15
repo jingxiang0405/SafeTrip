@@ -3,8 +3,8 @@ import db from "#src/database.js";
 /**
  * Create a new Trip record including status and timestamps
  * @param {Object} params
- * @param {number} params.caregiver_id
  * @param {number} params.caretaker_id
+ * @param {number} params.carereceiver_id
  * @param {string} params.bus_id
  * @param {string} params.bus_name
  * @param {string} params.start_station
@@ -14,17 +14,17 @@ import db from "#src/database.js";
  * @param {Date}   params.end_time
  * @returns {Object} The created Trip
  */
-async function CreateTrip({ caregiver_id, caretaker_id, bus_id, bus_name, start_station, dest_station, status, start_time, end_time }) {
+async function CreateTrip({ caretaker_id, carereceiver_id, bus_id, bus_name, start_station, dest_station, status, start_time, end_time }) {
     const sql = `
     INSERT INTO trips
-      (caregiver_id, caretaker_id, bus_id, bus_name, start_station, dest_station, status, start_time, end_time)
+      (caretaker_id, carereceiver_id, bus_id, bus_name, start_station, dest_station, status, start_time, end_time)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-    RETURNING id, caregiver_id, caretaker_id, bus_id, bus_name, start_station, dest_station, status, start_time, end_time;
+    RETURNING id, caretaker_id, carereceiver_id, bus_id, bus_name, start_station, dest_station, status, start_time, end_time;
   `;
 
     const vals = [
-        caregiver_id,
         caretaker_id,
+        carereceiver_id,
         bus_id,
         bus_name,
         start_station,
@@ -47,8 +47,8 @@ async function FindTripById(tripId) {
     const sql = `
     SELECT
       id,
-      caregiver_id,
       caretaker_id,
+      carereceiver_id,
       bus_id,
       bus_name,
       start_station,

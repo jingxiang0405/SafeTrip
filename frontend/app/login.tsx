@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import React, { useState, useContext } from 'react';
+import { Link } from 'expo-router';
 import { AuthContext } from '@/utils/authContext';
 import { Colors } from '@/constants/Colors';
 // import { Button } from '@react-navigation/elements';
@@ -33,27 +34,36 @@ export default function LoginScreen() {
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
-        <KeyboardAvoidingView style={{alignContent: 'center', alignItems: 'center', width: '100%'}}>
-        <ThemedText style={styles.text}>Login</ThemedText>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor={'#999'}
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor={'#999'}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity onPress={handleLogin} style={styles.button}>
-          <Text style={styles.buttonText}>Log in</Text>
-        </TouchableOpacity>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{alignContent: 'center', alignItems: 'center', width: '100%'}}
+        >
+          <ThemedText style={styles.text}>Login</ThemedText>
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor={ Colors[nowColorScheme].subtext }
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor={ Colors[nowColorScheme].subtext }
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          <View style={{ flexDirection: 'row', marginTop: 10 }}>
+            <Text style={{ color: Colors[nowColorScheme].text }}>Don't have an account? </Text>
+            <Link href="/signup">
+              <Text style={{ color: '#007bff' }}>Sign up</Text>
+            </Link>
+          </View>
+          <TouchableOpacity onPress={handleLogin} style={styles.button}>
+            <Text style={styles.buttonText}>Log in</Text>
+          </TouchableOpacity>
         </KeyboardAvoidingView>
       </View>
     </TouchableWithoutFeedback>
@@ -82,7 +92,7 @@ const initStyles = (nowColorScheme: 'light' | 'dark') => {
       padding: 15,
       marginBottom: 10,
       borderWidth: 1,
-      borderColor: '#ccc',
+      borderColor: Colors[nowColorScheme].border,
       borderRadius: 5,
     },
     button: {

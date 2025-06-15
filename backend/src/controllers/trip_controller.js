@@ -4,10 +4,10 @@ async function NewTrip(req, res) {
     try {
 
 
-        const { caregiver_id, caretaker_id, bus_id, bus_name, start_station, dest_station } = req.body;
+        const { caretaker_id, carereceiver_id, bus_id, bus_name, start_station, dest_station } = req.body;
         const newTrip = await CreateTrip({
-            caregiver_id,
             caretaker_id,
+            carereceiver_id,
             bus_id,
             bus_name,
             start_station,
@@ -45,7 +45,7 @@ async function UpdateLocation(req, res) {
         const { tripId } = req.params;
         const { lat, lng, timestamp, role } = req.body;
 
-        if (role != 'caretaker') {
+        if (role != 'carereceiver') {
             console.error("非被照顧者呼叫UpdateLocation. role=", role);
             return;
         }
