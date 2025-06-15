@@ -1,11 +1,10 @@
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'trip_status') THEN
-    CREATE TYPE trip_status AS ENUM ('pending', 'active', 'complete');
-  END IF;
-END$$;
+DROP TABLE IF EXISTS trip CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TYPE IF EXISTS trip_status;
 
--- 2. 建立 users table
-CREATE TABLE IF NOT EXISTS users (
+CREATE TYPE trip_status AS ENUM ('pending', 'active', 'complete');
+
+CREATE TABLE users (
   id              SERIAL PRIMARY KEY,
   name            VARCHAR(100)       NOT NULL,
   sos_phone_number VARCHAR(20),
@@ -14,8 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   password        TEXT               NOT NULL
 );
 
--- 3. 建立 trip table
-CREATE TABLE IF NOT EXISTS trip (
+CREATE TABLE trip (
   id            SERIAL          PRIMARY KEY,
   caretaker_id  INTEGER         NOT NULL REFERENCES users(id),
   carereceiver_id  INTEGER         NOT NULL REFERENCES users(id),
@@ -28,6 +26,5 @@ CREATE TABLE IF NOT EXISTS trip (
   end_time      TIMESTAMPTZ
 );
 
--- 4. 建立 index 以加速常用查詢（可選）
 CREATE INDEX IF NOT EXISTS idx_trip_caretaker ON trip(caretaker_id);
 CREATE INDEX IF NOT EXISTS idx_trip_carereceiver ON trip(carereceiver_id);
