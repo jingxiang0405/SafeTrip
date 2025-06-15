@@ -9,6 +9,7 @@ TRUNCATE TABLE users RESTART IDENTITY CASCADE;
 
 -- Users 範例資料
 INSERT INTO users (name, sos_phone_number, role, partner_id, password) VALUES
+  ('test', '0912-345-678', NULL, NULL, 'test'),
   -- 第一組配對：Alice (caretaker) ↔ Bob (carereceiver)
   ('Alice Chang', '0912-345-678', 'caretaker', 2, 'passAlice1'),
   ('Bob Chang',   '0987-654-321', 'carereceiver', 1, 'passBob1'),
