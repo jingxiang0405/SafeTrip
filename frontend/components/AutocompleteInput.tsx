@@ -87,7 +87,7 @@ const initStyles = (mode: 'light' | 'dark') =>
     },
     suggestionBox: {
       width: '100%',
-      backgroundColor: '#2C2C2E',
+      backgroundColor: '#808080',
       borderLeftWidth: 1,
       borderRightWidth: 1,
       borderBottomWidth: 1,

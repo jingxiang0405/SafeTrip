@@ -156,13 +156,13 @@
       coordinates: { latitude: marker.latitude, longitude: marker.longitude },
       title: `${index + 1}. ${marker.title}`,
       tintColor: 'deepskyblue',
-      systemImage: 'bus',
+      systemImage: 'signpost.right',
     })),
     ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
       coordinates: bus,
       title: `Bus ${index + 1}`,
       tintColor: 'crimson',
-      systemImage: 'signpost.right',
+      systemImage: 'bus',
     })) : []),
     ...(dependentLocation
     ? [{

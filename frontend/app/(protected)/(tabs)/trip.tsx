@@ -2,11 +2,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState, useContext } from 'react';
+import React, { useMemo, useState, useContext, useEffect, useCallback } from 'react';
 import { Alert, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '@/utils/authContext';
-
+import { GetAllBuses } from '@/utils/busService';
+import DropdownSelect, { Option } from '@/components/DropdownSelect';
 import AutocompleteInput from '@/components/AutocompleteInput';
 import { fakeRouteMap, fakeRouteNumbers } from '../../../assets/lib/fakeRoutes';
 
@@ -22,15 +23,32 @@ export default function Trip() {
   const [startStop, setStartStop] = useState('');
   const [endStop, setEndStop] = useState('');
   const [busNumber, setBusNumber] = useState('');
+  const [allStops, setAllStops] = useState<string[]>([]);
+
+  const [direction, setDirection] = useState('');
+  const directionOptions: Option[] = [
+    { label: '去程', value: 'forward' },
+    { label: '回程', value: 'backward' }
+  ];
 
   const stopOptions = useMemo(() => {
+    // TODO: 這邊目前使用 fakeRouteMap，請改為呼叫 TDX API 拿到站點資料
     return busNumber && fakeRouteMap[busNumber] ? fakeRouteMap[busNumber].map(s => s.StopName.Zh_tw) : [];
   }, [busNumber]);
 
 
-  // 建立行程邏輯
+  const [allBusList, setAllBusList] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchAllBuses = async () => {
+      const buses = await GetAllBuses(); // 假設回傳 string[]
+      setAllBusList(buses);
+    };
+    fetchAllBuses();
+  }, []);
+
+    // 建立行程邏輯
   const handleCreateTrip = () => {
-    // 基本欄位檢查
     if (!startStop || !endStop || !busNumber) {
       Alert.alert('錯誤', '請輸入所有欄位');
       return;
@@ -41,17 +59,27 @@ export default function Trip() {
       startStop,
       endStop,
       city: 'Taipei',
+      // TODO: stops 應改為 TDX 回傳的站點 JSON，而非 fakeRouteMap
       stops: JSON.stringify(fakeRouteMap[busNumber] ?? [])
     }
 
     if(authState.role === 'caretaker'){
+      // TODO: 若未來需等候 TDX API 回應成功後再跳轉，請改為 async/await 控制流程
       router.push({ pathname: '/map', params: tripParams})
-    }else {
+    }else if(authState.role === 'careReceiver'){
       router.push({ pathname : '/busStatus', params: tripParams})
     }
   };
 
+  const handleSelectBusChange = useCallback((val : string) => {
+                setBusNumber(val);
+                setStartStop('');
+                setEndStop('');
+                const allStops = await GetAllStop(val);
+                setAllStops(allStops);
+  }, [busNumber]);
   return (
+
     <SafeAreaView style={styles.topBarContainer}>
       <View style={styles.topBar}>
         <Text style={{color: Colors[nowColorScheme].text, fontWeight: 'bold', fontSize: 28}}>Trip</Text>
@@ -63,13 +91,17 @@ export default function Trip() {
 
             <AutocompleteInput
               label="Bus Number"
-              data={fakeRouteNumbers}
+              data={allBusList}
               value={busNumber}
-              onChange={(val) => {
-                setBusNumber(val);
-                setStartStop('');
-                setEndStop('');
-              }}
+              onChange={handleSelectBusChange}
+              colorScheme={nowColorScheme}
+            />
+            
+           <DropdownSelect
+              label="方向"
+              options={directionOptions}
+              selectedValue={direction}
+              onValueChange={setDirection}
               colorScheme={nowColorScheme}
             />
 
