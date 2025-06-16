@@ -20,7 +20,16 @@ async function GetBusAllStops(busId: string){
     // TODO: backend
     // response: 
     // {
-    //      stopName : [lat, lng]
+    //      direction : [
+    //
+    //          {
+    //             name: string,
+    //             locaation:{
+    //                 lat: number,
+    //                 lon: number}
+    //          },
+    //          
+    //      ]
     // }
     // 
     try {
