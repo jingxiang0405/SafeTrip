@@ -32,6 +32,33 @@ async function GetBusAllStops(busId: string){
     //      ]
     // }
     // 
+    // fakedata
+    return {
+        0: [
+            {
+                name: "台大醫院",
+                location: { lat: 25.042233, lon: 121.516002 }
+            },
+            {
+                name: "台北車站",
+                location: { lat: 25.047708, lon: 121.517055 }
+            },
+            {
+                name: "善導寺",
+                location: { lat: 25.0451, lon: 121.5235 }
+            }
+        ],
+        1: [
+            {
+                name: "南港展覽館",
+                location: { lat: 25.0689, lon: 121.6135 }
+            },
+            {
+                name: "昆陽",
+                location: { lat: 25.0505, lon: 121.5808 }
+            }
+        ]
+    }
     try {
         const response = await api.get(`/bus/route/${busId}`);
         return response.data;

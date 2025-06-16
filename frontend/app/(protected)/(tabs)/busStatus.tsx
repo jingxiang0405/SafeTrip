@@ -14,6 +14,7 @@ const TARGET_STOP = {
   latitude: 25.0451,
   longitude: 121.5235,
 };
+// TODO: 未來改為從 props or route params 中取得 endStop 座標，避免寫死
 
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371e3; // 地球半徑（公尺）
@@ -38,7 +39,7 @@ export default function BusStatusScreen() {
   const [distance, setDistance] = useState<number | null>(null);
   const [arrived, setArrived] = useState(false);
 
-  useMockDependentLocation(); 
+  useMockDependentLocation(); // TODO: 正式上線時移除，改為由裝置 GPS 定時取得位置並上傳後端
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -46,6 +47,9 @@ export default function BusStatusScreen() {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
         const loc = await Location.getCurrentPositionAsync({});
+        // TODO: 此處改為 fetch 被照顧者位置（由後端提供）
+        // const res = await fetch('https://api.xxx.com/dependent-location');
+        // const loc = await res.json();
         const dist = getDistanceMeters(
           loc.coords.latitude,
           loc.coords.longitude,
@@ -56,6 +60,7 @@ export default function BusStatusScreen() {
         setDistance(dist);
 
         if (dist < 50 && !arrived) {
+          //TODO
           Alert.alert('提醒您下車', '已抵達善導寺站');
           setArrived(true);
         }

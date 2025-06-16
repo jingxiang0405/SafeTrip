@@ -23,13 +23,9 @@ export default function Trip() {
   const [startStop, setStartStop] = useState('');
   const [endStop, setEndStop] = useState('');
   const [busNumber, setBusNumber] = useState('');
-  const [allStops, setAllStops] = useState<string[]>([]);
+  const [allStops, setAllStops] = useState<Array<Array<{name: string, location: {lat: number, lon: number}}>>>([]);
 
   const [direction, setDirection] = useState('');
-  const directionOptions: Option[] = [
-    { label: '去程', value: 'forward' },
-    { label: '回程', value: 'backward' }
-  ];
 
   const stopOptions = useMemo(() => {
     // TODO: 這邊目前使用 fakeRouteMap，請改為呼叫 TDX API 拿到站點資料
@@ -38,7 +34,6 @@ export default function Trip() {
 
 
   const [allBusList, setAllBusList] = useState<string[]>([]);
-
   useEffect(() => {
     const fetchAllBuses = async () => {
       const buses = await GetAllBuses(); // 假設回傳 string[]
@@ -99,7 +94,12 @@ export default function Trip() {
             
            <DropdownSelect
               label="方向"
-              options={directionOptions}
+              options={
+                [
+                  { label: (allStops[0] && allStops[0].length > 0) ? '往：'+allStops[0][allStops[0].length - 1].name : '去程', value: '0' },
+                  { label: (allStops[1] && allStops[1].length > 0) ? '往：'+allStops[1][allStops[1].length - 1].name : '回程', value: '1' }
+                ]
+              }
               selectedValue={direction}
               onValueChange={setDirection}
               colorScheme={nowColorScheme}
@@ -123,7 +123,7 @@ export default function Trip() {
 
           
           <TouchableOpacity style={styles.button} onPress={handleCreateTrip}>
-            <ThemedText style={styles.buttonText}>View on Map</ThemedText>
+            <ThemedText style={styles.buttonText}>開始行程</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ScrollView>
