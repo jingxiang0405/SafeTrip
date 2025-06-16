@@ -1,5 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
+  "strict": true,
+  "jsx": "react-native",
   "compilerOptions": {
     "strict": true,
     "paths": {
@@ -11,7 +13,8 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "hooks/Mock Dependent Location",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "hooks/Mock Dependent Location"  ]
+  ]
 }

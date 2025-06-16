@@ -44,7 +44,7 @@ export default function Trip() {
       stops: JSON.stringify(fakeRouteMap[busNumber] ?? [])
     }
 
-    if(authState.role === 'caregiver'){
+    if(authState.role === 'caretaker'){
       router.push({ pathname: '/map', params: tripParams})
     }else {
       router.push({ pathname : '/busStatus', params: tripParams})

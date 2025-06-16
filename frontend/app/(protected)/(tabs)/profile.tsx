@@ -93,7 +93,7 @@ export default function Profile() {
                     />
                     <View style={styles.profileText}>
                         <Text style={styles.username}>{authState.username}</Text>
-                        <Text style={styles.subtext}>帳戶資訊</Text>
+                        <Text style={styles.subtext}>{authState.userId}</Text>
                     </View>
                 </TouchableOpacity>
 
@@ -120,11 +120,11 @@ export default function Profile() {
                     <>
                         <MenuItem
                             icon={<FontAwesome5 name="user-shield" size={24} color={Colors[nowColorScheme].text} />}
-                            label={`目前身份：${authState.role === 'caregiver' ? '照護者' : '被照顧者'}`}
+                            label={`目前身份：${authState.role === 'caretaker' ? '照護者' : '被照顧者'}`}
                         />
                         <MenuItem
                             icon={<Ionicons name="people-outline" size={24} color={Colors[nowColorScheme].text} />}
-                            label={`配對對象：${authState.pairedWith ? authState.pairedWith.name : '尚未配對' }`}
+                            label={`配對對象：${authState.pairedWith ? authState.pairedWith.name : '尚未配對'}`}
                         />
                         {authState.pairedWith ? (
                             <MenuItem
@@ -158,7 +158,7 @@ export default function Profile() {
                         onPress={() => setShowModal(true)}
                     />
                 )}
-                
+
                 <MenuItem
                     icon={<Ionicons name="location-outline" size={24} color={Colors[nowColorScheme].text} />}
                     label="定位授權"

@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { ThemedView } from '@/components/ThemedView';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -12,16 +12,15 @@ import { Colors } from '@/constants/Colors';
 import * as SystemUI from 'expo-system-ui';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+    const colorScheme = useColorScheme();
+    const [loaded] = useFonts({
+        SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    });
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-  
+    if (!loaded) {
+        // Async font loading only occurs in development.
+        return null;
+    }
 
   SystemUI.setBackgroundColorAsync(Colors[colorScheme ?? 'light'].background); 
   return (
