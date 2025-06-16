@@ -42,6 +42,14 @@
     useProximityAlert(fakeBusPositions[0], true);
 
     useEffect(() => {
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * This asynchronous function requests location permissions from the user.
+ * It first requests foreground location permission. If not granted, it alerts
+ * the user and provides an option to navigate to the system settings to enable it.
+ * If foreground permission is granted, it then requests background location
+ * permission, logging the result.
+/*******  5866079f-ec86-4268-8308-4bfc1acdeb06  *******/
       const requestLocationPermissions = async () => {
         try {
           // Request foreground permission first

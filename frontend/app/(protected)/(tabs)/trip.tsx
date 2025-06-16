@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState, useContext, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useContext, useEffect, useCallback, use } from 'react';
 import { Alert, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '@/utils/authContext';
@@ -23,15 +23,11 @@ export default function Trip() {
   const [startStop, setStartStop] = useState('');
   const [endStop, setEndStop] = useState('');
   const [busNumber, setBusNumber] = useState('');
-  const [allStops, setAllStops] = useState<Array<Array<{name: string, location: {lat: number, lon: number}}>>>([]);
+  const [allStops, setAllStops] = useState<{ name: string, location: { lat: number, lon: number } }[][]>([]);
 
-  const [direction, setDirection] = useState('');
+  const [direction, setDirection] = useState(Number(-1));
 
-  const stopOptions = useMemo(() => {
-    // TODO: 這邊目前使用 fakeRouteMap，請改為呼叫 TDX API 拿到站點資料
-    return busNumber && fakeRouteMap[busNumber] ? fakeRouteMap[busNumber].map(s => s.StopName.Zh_tw) : [];
-  }, [busNumber]);
-
+  const [stopOptions, setStopOptions] = useState<string[]>([]);
 
   const [allBusList, setAllBusList] = useState<string[]>([]);
   useEffect(() => {
@@ -67,12 +63,19 @@ export default function Trip() {
   };
 
   const handleSelectBusChange = useCallback(async (val: string) => {
-                setBusNumber(val);
-                setStartStop('');
-                setEndStop('');
-                const allStops = await GetBusAllStops(val);
-                setAllStops(allStops);
-  }, [busNumber]);
+      setBusNumber(val);
+      setStartStop('');
+      setEndStop('');
+      const allStops = await GetBusAllStops(val);
+      setAllStops(allStops);
+  }, []);
+
+  const handleDirectionChange = useCallback(async (val: string) => {
+      const dir = Number(val);
+      setDirection(dir);
+      const options = allStops[dir].map(s => s.name) || [];
+      setStopOptions(options);
+  }, [allStops]);
   return (
 
     <SafeAreaView style={styles.topBarContainer}>
@@ -100,8 +103,8 @@ export default function Trip() {
                   { label: (allStops[1] && allStops[1].length > 0) ? '往：'+allStops[1][allStops[1].length - 1].name : '回程', value: '1' }
                 ]
               }
-              selectedValue={direction}
-              onValueChange={setDirection}
+              selectedValue={direction === -1 ?  ''  : direction.toString() }
+              onValueChange={handleDirectionChange}
               colorScheme={nowColorScheme}
             />
 

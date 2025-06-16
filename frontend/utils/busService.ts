@@ -6,7 +6,7 @@ async function GetAllBuses() {
     //   [string, string, ...]
     
     // fakedata
-    return ["530", "羅斯福路幹線", "262", "307", "205"];
+    return ['262', '307', '205', '藍1', '綠16'];
 
     try {
         const response = await api.get(`/bus/route/all`);
@@ -26,7 +26,8 @@ async function GetBusAllStops(busId: string){
     //             name: string,
     //             locaation:{
     //                 lat: number,
-    //                 lon: number}
+    //                 lon: number
+    //             }
     //          },
     //          
     //      ]
@@ -75,6 +76,7 @@ async function GetBusAllStops(busId: string){
 //   ];
 // };
 
+// async function  
 export {
     GetAllBuses,
     GetBusAllStops,
