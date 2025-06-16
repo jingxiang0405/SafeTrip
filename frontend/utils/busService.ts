@@ -40,16 +40,16 @@ async function GetBusAllStops(busId: string){
     }
 }
 
-const GetBusAllDirections = async (): Promise<{ label: string; value: string }[]> => {
-  // 模擬 API 回傳
-  return [
-    { label: '去程', value: 'forward' },
-    { label: '回程', value: 'backward' }
-  ];
-};
+// const GetBusAllDirections = async (): Promise<{ label: string; value: string }[]> => {
+//   // 模擬 API 回傳
+//   return [
+//     { label: '去程', value: 'forward' },
+//     { label: '回程', value: 'backward' }
+//   ];
+// };
 
 export {
     GetAllBuses,
     GetBusAllStops,
-    GetBusAllDirections
+    // GetBusAllDirections
 }

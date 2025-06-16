@@ -6,7 +6,7 @@ import React, { useMemo, useState, useContext, useEffect, useCallback } from 're
 import { Alert, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '@/utils/authContext';
-import { GetAllBuses } from '@/utils/busService';
+import { GetAllBuses, GetBusAllStops } from '@/utils/busService';
 import DropdownSelect, { Option } from '@/components/DropdownSelect';
 import AutocompleteInput from '@/components/AutocompleteInput';
 import { fakeRouteMap, fakeRouteNumbers } from '../../../assets/lib/fakeRoutes';
@@ -71,11 +71,11 @@ export default function Trip() {
     }
   };
 
-  const handleSelectBusChange = useCallback((val : string) => {
+  const handleSelectBusChange = useCallback(async (val: string) => {
                 setBusNumber(val);
                 setStartStop('');
                 setEndStop('');
-                const allStops = await GetAllStop(val);
+                const allStops = await GetBusAllStops(val);
                 setAllStops(allStops);
   }, [busNumber]);
   return (

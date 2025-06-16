@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -8,9 +8,11 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AuthContext } from '@/utils/authContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const authState = useContext(AuthContext);
   return (
     <Tabs
       screenOptions={{
@@ -57,7 +59,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={27} name="paperplane.fill" color={color} />,
         }}
       /> */}
-      <Tabs.Screen 
+      {
+        authState.role === 'caretaker' && 
+        <Tabs.Screen 
         name="trip"
         options={{ 
           title: 'Trip',
@@ -71,6 +75,7 @@ export default function TabLayout() {
           )
         }} 
       />
+      }
       <Tabs.Screen 
         name="map"
         options={{ 
