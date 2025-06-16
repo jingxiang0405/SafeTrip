@@ -30,7 +30,7 @@ async function GetAllStops(req, res) {
 
     try {
 
-        const busId = parseInt(req.params.busId, 10);
+        const busId = req.params.busId;
 
         const data = await FetchStopOfRoute(busId);
 

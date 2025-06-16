@@ -68,7 +68,7 @@ async function callApi(path, opts = {}) {
     return res.json();
 }
 
-async function FetchBusData(busId) {
+async function FetchBusRealTimeFrequency(busId) {
     try {
         const result = await callApi(`/Bus/RealTimeByFrequency/City/Taipei/${busId}`);
         console.log(result);
@@ -100,50 +100,9 @@ async function FetchAllBusRoutes() {
         console.error(e);
     }
 }
-/**
- * @param {Number} busId 
- * @param {string} startStation 
- * @param {string} endStation}
- * @returns {Promise<Number>} 回傳 0 or 1 
- */
-async function DirectionOfBus(busId, startStation, endStation) {
-    try {
-        const data = await callApi(`/Bus/StopOfRoute/City/Taipei/${busId}`);
-        let startIndex;
-        let endIndex;
 
-        data[0].Stops.forEach((stop, index) => {
-            if (stop.StopName.Zh_tw === startStation) {
-                startIndex = index;
-            }
-            if (stop.StopName.Zh_tw === endStation) {
-                endIndex = index;
-            }
-        })
-
-        data[1].Stops.forEach((stop, index) => {
-            if (stop.StopName.Zh_tw === startStation) {
-                startIndex = index;
-            }
-            if (stop.StopName.Zh_tw === endStation) {
-                endIndex = index;
-            }
-        })
-
-
-        if (startIndex === undefined || endIndex === undefined) {
-            console.log("找不到站牌");
-            return;
-        }
-        console.log(startIndex);
-
-    }
-    catch (e) {
-        console.error(e);
-    }
-}
 export {
-    FetchBusData,
+    FetchBusRealTimeFrequency,
     FetchStopOfRoute,
     FetchAllBusRoutes
 }

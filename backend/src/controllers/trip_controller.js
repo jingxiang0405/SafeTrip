@@ -1,35 +1,31 @@
 import { PutLocation, SubscribeLocation } from "#src/services/location_service.js";
-import { FetchBusData } from "#src/services/tdx_service.js";
-import { FindTripById } from "#src/services/trip_service.js";
+import { FetchStopOfRoute } from "#src/services/tdx_service.js";
+import { EmitStartTrip, SubscribeNewTrip, InsertTrip, FindTripById } from "#src/services/trip_service.js";
 
 
-const tripRecords = [];
+const tripRecords = {};
 async function NewTrip(req, res) {
     try {
 
 
-        const { caretaker_id, carereceiver_id, bus_id, bus_name, start_station, dest_station, lat, lng } = req.body;
+        console.log("new trip")
+        const caretakerId = parseInt(req.params.caretakerId, 10);
+        const { careReceiverId, busName, startStation, endStation, direction } = req.body;
 
-        const newTrip = await CreateTrip({
-            caretaker_id,
-            carereceiver_id,
-            bus_id,
-            bus_name,
-            start_station,
-            dest_station,
-            status: 'pending',
-            start_time: new Date(),
-            end_time: null,
+        const newTrip = {
+            caretakerId,
+            careReceiverId,
+            busName,
+            startStation,
+            endStation,
+            direction
+        }
+
+        EmitStartTrip(careReceiverId, {
+            busName, startStation, endStation, terminal: direction.terminal
         });
 
-        const busData = FetchBusData(parseInt(bus_id));
-        console.log("[New Trip] busData:\n", busData);
-        tripRecords.push({
-
-            ...newTrip,
-            location: [lat, lng],
-            // direction: 
-        });
+        tripRecords[careReceiverId] = newTrip;
 
         console.log("[New Trip] current trips:\n", tripRecords);
         res.status(201).send(newTrip);
@@ -37,6 +33,22 @@ async function NewTrip(req, res) {
     catch (e) {
         console.error(e);
         res.status(403).send({ message: "NewTrip error" });
+    }
+}
+
+
+async function WaitForNewTrip(req, res) {
+
+    req.setTimeout(0);
+
+    try {
+        const careReceiverId = parseInt(req.params.careReceiverId, 10);
+        const payload = await SubscribeNewTrip(careReceiverId);
+        res.status(200).send(payload);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(400).send({ message: "WaitForNewTrip failed" });
     }
 }
 
@@ -55,6 +67,9 @@ async function GetTrip(req, res) {
     }
 }
 
+
+
+// TODO : Next
 async function UpdateLocation(req, res) {
     try {
         const { tripId, carereceiverId } = req.params;
@@ -89,6 +104,7 @@ function GetCareReceiverLocation(req, res) {
 }
 export {
     NewTrip,
+    WaitForNewTrip,
     GetTrip,
     GetCareReceiverLocation,
     UpdateLocation,
