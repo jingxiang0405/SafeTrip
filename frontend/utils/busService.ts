@@ -49,7 +49,7 @@ async function GetBusAllStops(busId: string){
     //             name: string,
     //             locaation:{
     //                 lat: number,
-    //                 lon: number
+    //                 lng: number
     //             }
     //          },
     //          
@@ -61,25 +61,25 @@ async function GetBusAllStops(busId: string){
     //     0: [
     //         {
     //             name: "台大醫院",
-    //             location: { lat: 25.042233, lon: 121.516002 }
+    //             location: { lat: 25.042233, lng: 121.516002 }
     //         },
     //         {
     //             name: "台北車站",
-    //             location: { lat: 25.047708, lon: 121.517055 }
+    //             location: { lat: 25.047708, lng: 121.517055 }
     //         },
     //         {
     //             name: "善導寺",
-    //             location: { lat: 25.0451, lon: 121.5235 }
+    //             location: { lat: 25.0451, lng: 121.5235 }
     //         }
     //     ],
     //     1: [
     //         {
     //             name: "南港展覽館",
-    //             location: { lat: 25.0689, lon: 121.6135 }
+    //             location: { lat: 25.0689, lng: 121.6135 }
     //         },
     //         {
     //             name: "昆陽",
-    //             location: { lat: 25.0505, lon: 121.5808 }
+    //             location: { lat: 25.0505, lng: 121.5808 }
     //         }
     //     ]
     // }
@@ -171,19 +171,17 @@ async function GetBusRouteShape(busId: string, direction: number) {
     // 
     // fakedata
     // return [
-    //         { lat: 25.042233, lon: 121.516002 },
-    //         { lat: 25.047708, lon: 121.517055 },
-    //         { lat: 25.0451, lon: 121.5235 },
-    //         { lat: 25.0689, lon: 121.6135 },
-    //         { lat: 25.0505, lon: 121.5808 },
-    //         { lat: 25.0001, lon: 121.5412 },
-    //         { lat: 25.0146, lon: 121.5331 },
-    //         { lat: 25.0223, lon: 121.5285 }
+    //         { lat: 25.042233, lng: 121.516002 },
+    //         { lat: 25.047708, lng: 121.517055 },
+    //         { lat: 25.0451, lng: 121.5235 },
+    //         { lat: 25.0689, lng: 121.6135 },
+    //         { lat: 25.0505, lng: 121.5808 },
+    //         { lat: 25.0001, lng: 121.5412 },
+    //         { lat: 25.0146, lng: 121.5331 },
+    //         { lat: 25.0223, lng: 121.5285 }
     //     ]
     try {
-        console.log("GetBusRouteShape:", busId, direction);
         const response = await api.get(`/bus/route/shape/${busId}/direction/${direction}`);
-        // console.log("GetBusRouteShape response:", response.data);
         return response.data;
     } catch (e) {
         console.error("GetBusRouteShape failed:", e);

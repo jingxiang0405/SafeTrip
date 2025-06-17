@@ -23,7 +23,7 @@ export default function Trip() {
   const [startStop, setStartStop] = useState('');
   const [endStop, setEndStop] = useState('');
   const [busNumber, setBusNumber] = useState('');
-  const [allStops, setAllStops] = useState<{ name: string, location: { lat: number, lon: number } }[][]>([]);
+  const [allStops, setAllStops] = useState<{ name: string, location: { lat: number, lng: number } }[][]>([]);
 
   const [direction, setDirection] = useState(Number(-1));
 

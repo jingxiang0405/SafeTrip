@@ -28,8 +28,10 @@
   export default function Map() {
     const authState = useContext(AuthContext);
     const [dependentLocation, setDependentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-    const [shapePoints, setShapePoints] = useState<{ lat: number; lon: number }[]>([]);
+    const [shapePoints, setShapePoints] = useState<{ lat: number; lng: number }[]>([]);
     const [busesPos, setBusesPos] = useState<{ latitude: number; longitude: number }[]>([]);
+    const [polyline, setPolyline] = useState<{ coordinates: { latitude: number; longitude: number }[] } | undefined>(undefined);
+
     // 載入後定期取得
     useEffect(() => {
       const interval = setInterval(async () => {
@@ -88,16 +90,36 @@
     const params = useLocalSearchParams();
     const stopsParam = params.stops as string | undefined;
     // TODO: 改為呼叫 TDX API 取得路線 shapePoint（polyline）資料
-    useEffect(() => {
-      const fetchBusRoute = async () => {
+  //   useEffect(() => {
+  //     const fetchBusRoute = async () => {
+  //       const busRouteShape = await GetBusRouteShape(authState.busNumber ?? '', authState.direction ?? 0);
+  //       setShapePoints(busRouteShape ?? []);
+  //       // console.log('Bus route shape points:', busRouteShape);
+  //     };
+  //   fetchBusRoute();
+  // }, [authState.busNumber, authState.direction]); 
+useEffect(() => {
+  const fetchRoute = async () => {
+    try {
       const busRouteShape = await GetBusRouteShape(authState.busNumber ?? '', authState.direction ?? 0);
       setShapePoints(busRouteShape ?? []);
-      // console.log('Bus route shape points:', busRouteShape);
-    };
+      const prepolyline = (busRouteShape).length > 0 ? {
+        coordinates: busRouteShape.map((p: { lat: number; lng: number }) => ({
+          latitude: p.lat,
+          longitude: p.lng,
+        })),
+        strokeColor: 'blue',
+        strokeWidth: 4,
+      } : undefined;
+      setPolyline(prepolyline);
+    } catch (error) {
+      console.error('Failed to fetch bus route shape:', error);
+      setShapePoints([]);
+    }
+  };
 
-    fetchBusRoute();
-  }, [authState.busNumber]); // Ensure it runs when busNumber changes
-    
+  fetchRoute();
+}, []);// 👈 this ensures it only runs once
     // TODO: 改為從 TDX API 拿到站點資料後解析，不要再從 URL 傳參數解析  (stopsParam)
     const stops = React.useMemo(() => {
       try {
@@ -184,15 +206,6 @@
       }]
     : [])
     ];
-    //TODO 引入公車路線 畫出公車路線圖
-    const polyline = shapePoints.length > 0 ? {
-      coordinates: shapePoints.map(p => ({
-        latitude: p.lat,
-        longitude: p.lon,
-      })),
-      strokeColor: 'blue',
-      strokeWidth: 4,
-    } : undefined;
 
     if (Platform.OS === 'ios') {
       return (
