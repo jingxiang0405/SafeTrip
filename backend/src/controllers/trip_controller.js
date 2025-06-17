@@ -87,9 +87,9 @@ async function UpdateLocation(req, res) {
         const messages = [];
         // not first update
         if (record?.location) {
-            if (GetDistanceMeter(oldLocation, location) > 300) {
-                messages.push("被照顧者偏離行程")
-            }
+            // if (GetDistanceMeter(oldLocation, location) > 300) {
+            //     messages.push("被照顧者偏離行程")
+            // }
             // TODO: Alert message
         }
 
