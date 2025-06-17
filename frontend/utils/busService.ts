@@ -76,9 +76,30 @@ async function GetBusAllStops(busId: string){
 //   ];
 // };
 
+const SendCreateTrip = async (userId: number, partnerId: number | undefined | null, busName: string, startStop: string, endStop: string, direction: number, terminal: string) => {
+    // console.log("SendCreateTrip: ");
+    // console.log(partnerId, busName, startStop, endStop, direction, terminal);
+    try {
+        const response = await api.post(`/trip/start/${userId}`, {
+            "careReceiverId": partnerId,
+            "busName": busName,
+            "startStation": startStop,
+            "endStation": endStop,
+            "direction": {
+                "id": direction,
+                "terminal": terminal
+            },
+        });
+        return response.data;
+    } catch (e) {
+        console.error("SendCreateTrip failed:", e);
+    }
+}
+
 // async function  
 export {
     GetAllBuses,
     GetBusAllStops,
+    SendCreateTrip
     // GetBusAllDirections
 }

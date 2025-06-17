@@ -6,7 +6,7 @@ import React, { useMemo, useState, useContext, useEffect, useCallback, use } fro
 import { Alert, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '@/utils/authContext';
-import { GetAllBuses, GetBusAllStops } from '@/utils/busService';
+import { GetAllBuses, GetBusAllStops, SendCreateTrip } from '@/utils/busService';
 import DropdownSelect, { Option } from '@/components/DropdownSelect';
 import AutocompleteInput from '@/components/AutocompleteInput';
 import { fakeRouteMap, fakeRouteNumbers } from '../../../assets/lib/fakeRoutes';
@@ -40,6 +40,7 @@ export default function Trip() {
 
     // 建立行程邏輯
   const handleCreateTrip = () => {
+    SendCreateTrip(authState.userId, authState?.pairedWith?.id, busNumber, startStop, endStop, direction, allStops[direction][allStops[direction].length - 1].name ?? '');
     if (!startStop || !endStop || !busNumber) {
       Alert.alert('錯誤', '請輸入所有欄位');
       return;
