@@ -9,14 +9,14 @@
   import { useLocalSearchParams } from 'expo-router';
   import React, { useContext, useEffect ,useState} from 'react';
   import * as Location from 'expo-location';
-  import { fakeBusPositions } from '@/assets/lib/fakeData';
+  //import { fakeBusPositions } from '@/assets/lib/fakeData';
   // import { fakeShapeMap } from '@/assets/lib/fakeShapes';
   import { getMockDependentLocation } from '@/hooks/useMockDependentLocation';
   import busIcon from '@/assets/images/bus.png';
   import stopIcon from '@/assets/images/stop.png';
   import dependentIcon from '@/assets/images/dependent.png';
   import { useProximityAlert } from '@/hooks/useProximityAlert';
-  import { GetBusRouteShape } from '@/utils/busService';
+  import { GetBusRouteShape , GetBusPos} from '@/utils/busService';
   import { AuthContext } from '@/utils/authContext';
 
   type StopMarker = { 
@@ -29,6 +29,7 @@
     const authState = useContext(AuthContext);
     const [dependentLocation, setDependentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [shapePoints, setShapePoints] = useState<{ lat: number; lon: number }[]>([]);
+    const [busesPos, setBusesPos] = useState<{ latitude: number; longitude: number }[]>([]);
     // 載入後定期取得
     useEffect(() => {
       const interval = setInterval(async () => {
@@ -40,7 +41,7 @@
     }, []);
 
     //TODO: 用真的busPosition
-    useProximityAlert(fakeBusPositions[0], true);
+    useProximityAlert(busesPos[0], true);
 
     useEffect(() => {
       const requestLocationPermissions = async () => {
@@ -89,7 +90,7 @@
     // TODO: 改為呼叫 TDX API 取得路線 shapePoint（polyline）資料
     useEffect(() => {
       const fetchBusRoute = async () => {
-      const busRouteShape = await GetBusRouteShape(authState.busNumber ?? '');
+      const busRouteShape = await GetBusRouteShape(authState.busNumber ?? '', authState.direction ?? 0);
       setShapePoints(busRouteShape ?? []);
       // console.log('Bus route shape points:', busRouteShape);
     };
@@ -145,12 +146,12 @@
       //icon : busIcon,
     })),
     // TODO: 啟用 icon 欄位並改為 TDX API 提供的公車即時位置資料
-    ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
-      coordinates: bus,
-      title: `Bus ${index + 1}`,
-      snippet : "即時位置",
-      //icon : stopIcon,
-    })) : []),
+    // ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
+    //   coordinates: bus,
+    //   title: `Bus ${index + 1}`,
+    //   snippet : "即時位置",
+    //   //icon : stopIcon,
+    // })) : []),
     ...(dependentLocation
     ? [{
         coordinates: dependentLocation,
@@ -167,12 +168,12 @@
       tintColor: 'deepskyblue',
       systemImage: 'signpost.right',
     })),
-    ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
-      coordinates: bus,
-      title: `Bus ${index + 1}`,
-      tintColor: 'crimson',
-      systemImage: 'bus',
-    })) : []),
+    // ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
+    //   coordinates: bus,
+    //   title: `Bus ${index + 1}`,
+    //   tintColor: 'crimson',
+    //   systemImage: 'bus',
+    // })) : []),
     ...(dependentLocation
     ? [{
       

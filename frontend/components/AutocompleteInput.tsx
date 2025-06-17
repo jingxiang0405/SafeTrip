@@ -30,7 +30,8 @@ export default function AutocompleteInput({
   const handleInputChange = (text: string) => {
     onChange(text);
     if (text.length === 0) {
-      setSuggestions([]);
+      const top5Data = data.slice(0, 5); 
+      setSuggestions(top5Data);
     } else {
       const filtered = data.filter((item) => item.includes(text));
       setSuggestions(filtered);

@@ -120,8 +120,8 @@ export default function Trip() {
               label="方向"
               options={
                 [
-                  { label: (allStops[0] && allStops[0].length > 0) ? '往：'+allStops[0][allStops[0].length - 1].name : '去程', value: '0' },
-                  { label: (allStops[1] && allStops[1].length > 0) ? '往：'+allStops[1][allStops[1].length - 1].name : '回程', value: '1' }
+                  { label: (allStops && allStops[0] && allStops[0].length > 0) ? '往：'+allStops[0][allStops[0].length - 1].name : '去程', value: '0' },
+                  { label: (allStops && allStops[1] && allStops[1].length > 0) ? '往：'+allStops[1][allStops[1].length - 1].name : '回程', value: '1' }
                 ]
               }
               selectedValue={direction === -1 ?  ''  : direction.toString() }
