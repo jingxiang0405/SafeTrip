@@ -1,11 +1,11 @@
 import { fakeRouteMap } from './fakeRoutes';
 
-export const fakeShapeMap: Record<string, { lat: number; lon: number }[]> = {};
+export const fakeShapeMap: Record<string, { lat: number; lng: number }[]> = {};
 
 Object.entries(fakeRouteMap).forEach(([route, stops]) => {
   fakeShapeMap[route] = stops.map(stop => ({
     lat: stop.StopPosition.PositionLat,
-    lon: stop.StopPosition.PositionLon
+    lng: stop.StopPosition.PositionLon
   }));
 });
 /*
