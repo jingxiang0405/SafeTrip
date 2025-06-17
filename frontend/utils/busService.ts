@@ -23,6 +23,22 @@ const SendCreateTrip = async (userId: number, partnerId: number | undefined | nu
     }
 }
 
+const CheckTripStatus = async (careReceiverId: number | null | undefined) => {
+    if (careReceiverId === null || careReceiverId === undefined) {
+        console.error("CheckTripStatus: no careReceiverId");
+    }
+    try {
+        const response = await api.get(`/trip/check/${careReceiverId}`);
+        if (response.status === 204) {
+            console.log("CheckTripStatus: Trip not found:", response.status);
+            return null;
+        }
+        return response.data;
+    } catch (e: any) {
+        console.error("CheckTripStatus failed:", e);
+    }
+}
+
 async function GetAllBuses() {
     // TODO: backend
     // response: 
@@ -206,6 +222,7 @@ export {
     GetBusAllStops,
     SendCreateTrip,
     GetBusRouteShape,
-    GetBusPos
+    GetBusPos,
+    CheckTripStatus
     // GetBusAllDirections
 }
