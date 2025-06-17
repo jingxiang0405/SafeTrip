@@ -84,6 +84,7 @@ export default function TabLayout() {
         name="map"
         options={{ 
           title: 'Map',
+          href: authState.role === 'caretaker' && authState.inTrip? '/map' : null,
           // headerShown: true,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
