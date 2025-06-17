@@ -39,6 +39,7 @@ export default function Trip() {
     authState.setDirection(direction);
     authState.setTerminal(allStops[direction][allStops[direction].length - 1].name ?? '');
     authState.setBusNumber(busNumber);
+    authState.setInTrip(true);
 
     if (!startStop || !endStop || !busNumber) {
       Alert.alert('錯誤', '請輸入所有欄位');

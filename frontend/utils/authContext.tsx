@@ -27,6 +27,7 @@ type AuthState = {
     direction?: number;
     terminal?: string;
     busNumber?: string;
+    inTrip: boolean;
 
     logIn: (username: string, password: string) => void;
     signUp: (username: string, email: string, phone: string, password: string) => void;
@@ -41,6 +42,7 @@ type AuthState = {
     setDirection: (direction: number) => void;
     setTerminal: (terminal: string) => void;
     setBusNumber: (busNumber: string) => void;
+    setInTrip: (inTrip: boolean) => void;
 
     generatePairCode: () => Promise<string>;
     waitForPairComplete: () => Promise<{ success: boolean; partnerId: number }>;
@@ -65,6 +67,7 @@ export const AuthContext = createContext<AuthState>({
     direction: -1,
     terminal: "",
     busNumber: "",
+    inTrip: false,
 
     logIn: () => { },
     signUp: () => { },
@@ -79,6 +82,7 @@ export const AuthContext = createContext<AuthState>({
     setDirection: () => {},
     setTerminal: () => {},
     setBusNumber: () => {},
+    setInTrip: () => {},
     generatePairCode: async () => "",
     waitForPairComplete: async () => ({ success: false, partnerId: 0 }),
     submitPairCode: async () => ({ success: false, partnerId: 0 }),
@@ -99,6 +103,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const [direction, setDirection] = useState<number>(-1);
     const [terminal, setTerminal] = useState<string>("");
     const [busNumber, setBusNumber] = useState<string>("");
+    const [inTrip, setInTrip] = useState<boolean>(false);
 
     const router = useRouter();
 
@@ -113,7 +118,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         endStop?: string,
         direction?: number,
         terminal?: string,
-        busNumber?: string
+        busNumber?: string,
+        inTrip?: boolean
     }) => {
         try {
             const jsonValue = JSON.stringify(auth);
@@ -465,6 +471,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 direction,
                 terminal,
                 busNumber,
+                inTrip,
                 logIn,
                 signUp,
                 logOut,
@@ -481,7 +488,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 setEndStop,
                 setDirection,
                 setTerminal,
-                setBusNumber
+                setBusNumber,
+                setInTrip
             }}
         >
             {children}

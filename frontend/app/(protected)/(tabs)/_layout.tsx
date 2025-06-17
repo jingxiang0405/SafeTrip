@@ -67,6 +67,20 @@ export default function TabLayout() {
         }} 
       />
       <Tabs.Screen 
+        name="busStatus"
+        options={{ 
+          title: 'BusStatus',
+          href: authState.role === 'careReceiver' ? '/busStatus' : null,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? 'bus' : 'bus-outline'}
+              color={color} 
+              size={size} 
+            />
+          )
+        }} 
+      />
+      <Tabs.Screen 
         name="map"
         options={{ 
           title: 'Map',
