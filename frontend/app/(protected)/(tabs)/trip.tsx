@@ -19,6 +19,16 @@ export default function Trip() {
   const styles = initstyles(nowColorScheme);
   const authState = useContext(AuthContext);
 
+  useEffect(() => {
+    if (authState.role !== 'caretaker') {
+      router.replace('/');
+    }
+  }, [authState.role, router]);
+
+  if (authState.role !== 'caretaker') {
+    return null;
+  }
+
   // 輸入狀態
   const [startStop, setStartStop] = useState('');
   const [endStop, setEndStop] = useState('');

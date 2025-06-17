@@ -52,20 +52,11 @@ export default function TabLayout() {
           ),
         }} 
       />
-      {/* <Tabs.Screen
-        name="trip"
-        options={{
-          title: 'Trip',
-          tabBarIcon: ({ color }) => <IconSymbol size={27} name="paperplane.fill" color={color} />,
-        }}
-      /> */}
-      {
-        authState.role === 'caretaker' && 
-        <Tabs.Screen 
+      <Tabs.Screen 
         name="trip"
         options={{ 
           title: 'Trip',
-          // headerShown: true,
+          href: authState.role === 'caretaker' ? '/trip' : null,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? 'paper-plane' : 'paper-plane-outline'} 
@@ -75,7 +66,6 @@ export default function TabLayout() {
           )
         }} 
       />
-      }
       <Tabs.Screen 
         name="map"
         options={{ 
