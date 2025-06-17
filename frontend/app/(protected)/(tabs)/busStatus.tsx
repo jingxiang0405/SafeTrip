@@ -47,7 +47,8 @@ export default function BusStatusScreen() {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
-        const loc = await getCareReceiverLoc(authState.userId); // TODO: 改為從後端獲取被照顧者位置
+        const locresponse = await getCareReceiverLoc(authState.userId); // TODO: 改為從後端獲取被照顧者位置;
+        const loc = !locresponse ? locresponse : authState.careReceiverLocation;
         // TODO: 此處改為 fetch 被照顧者位置（由後端提供）
         // const res = await fetch('https://api.xxx.com/dependent-location');
         // const loc = await res.json();
