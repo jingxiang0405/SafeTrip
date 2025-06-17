@@ -19,16 +19,6 @@ export default function Trip() {
   const styles = initstyles(nowColorScheme);
   const authState = useContext(AuthContext);
 
-  useEffect(() => {
-    if (authState.role !== 'caretaker') {
-      router.replace('/');
-    }
-  }, [authState.role, router]);
-
-  if (authState.role !== 'caretaker') {
-    return null;
-  }
-
   // 輸入狀態
   const [startStop, setStartStop] = useState('');
   const [endStop, setEndStop] = useState('');
@@ -40,13 +30,6 @@ export default function Trip() {
   const [stopOptions, setStopOptions] = useState<string[]>([]);
 
   const [allBusList, setAllBusList] = useState<string[]>([]);
-  useEffect(() => {
-    const fetchAllBuses = async () => {
-      const buses = await GetAllBuses(); // 假設回傳 string[]
-      setAllBusList(buses);
-    };
-    fetchAllBuses();
-  }, []);
 
     // 建立行程邏輯
   const handleCreateTrip = () => {
@@ -93,6 +76,25 @@ export default function Trip() {
       const options = allStops[dir].map(s => s.name) || [];
       setStopOptions(options);
   }, [allStops]);
+
+    useEffect(() => {
+    const fetchAllBuses = async () => {
+      const buses = await GetAllBuses(); // 假設回傳 string[]
+      setAllBusList(buses);
+    };
+    fetchAllBuses();
+  }, []);
+
+  useEffect(() => {
+    if (authState.role !== 'caretaker') {
+      router.replace('/');
+    }
+  }, [authState.role, router]);
+
+  if (authState.role !== 'caretaker') {
+    return null;
+  }
+  
   return (
 
     <SafeAreaView style={styles.topBarContainer}>
