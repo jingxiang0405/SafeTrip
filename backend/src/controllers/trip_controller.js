@@ -1,5 +1,4 @@
 import { GetDistanceMeter } from "#src/services/location_service.js";
-import { FetchBusRealTimeFrequency } from "#src/services/tdx_service.js";
 import { FindTripById } from "#src/services/trip_service.js";
 
 const tripRecords = {};
@@ -22,7 +21,7 @@ async function NewTrip(req, res) {
 
         tripRecords[careReceiverIdi] = newTrip;
 
-        console.log("[New Trip] :", tripRecords);
+        console.log("[New Trip] current trips:\n", tripRecords);
         res.status(201).send(newTrip);
     }
     catch (e) {
@@ -91,32 +90,13 @@ async function UpdateLocation(req, res) {
             if (GetDistanceMeter(oldLocation, location) > 300) {
                 messages.push("被照顧者偏離行程")
             }
-
-
-
             // TODO: Alert message
         }
-
-
-        // Find Nearby Bus
-        const busData = (await FetchBusRealTimeFrequency(record.busName)).map(bus => ({ BusPosition: bus.BusPosition, PlateNumb: bus.PlateNumb }))
-        let minDistance = 100;
-        let nearbyBusIndex = -1;
-        busData.forEach((bus, index) => {
-            const dist = GetDistanceMeter(location, { lat: bus.BusPosition.PositionLat, lng: bus.BusPosition.PositionLon });
-            if (dist < minDistance) {
-                nearbyBusIndex = index;
-                minDistance = dist;
-            }
-        });
-        const nearbyBus = (nearbyBusIndex === -1) ? {} : busData[nearbyBusIndex];
-
         record["location"] = location;
         record["messages"] = messages;
         const result = {
             location,
-            messages,
-            NearByBus: nearbyBus
+            messages
         }
 
         res.status(200).send(result);
