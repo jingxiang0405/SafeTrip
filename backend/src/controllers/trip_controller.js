@@ -1,14 +1,11 @@
-import { PutLocation, SubscribeLocation } from "#src/services/location_service.js";
-import { FetchStopOfRoute } from "#src/services/tdx_service.js";
-import { EmitStartTrip, SubscribeNewTrip, InsertTrip, FindTripById } from "#src/services/trip_service.js";
-
+import { EmitLocationChange, SubscribeLocation } from "#src/services/location_service.js";
+import { EmitStartTrip, SubscribeNewTrip, FindTripById } from "#src/services/trip_service.js";
 
 const tripRecords = {};
 async function NewTrip(req, res) {
     try {
 
 
-        console.log("new trip")
         const caretakerId = parseInt(req.params.caretakerId, 10);
         const { careReceiverId, busName, startStation, endStation, direction } = req.body;
 
@@ -67,36 +64,61 @@ async function GetTrip(req, res) {
     }
 }
 
-
-
-// TODO : Next
 async function UpdateLocation(req, res) {
     try {
-        const { tripId, carereceiverId } = req.params;
-        const { lat, lng, timestamp } = req.body;
+        const { careReceiverId } = req.params;
+        const { lat, lng } = req.body;
 
-        if (!tripId) {
-            res.status(400).send({ message: "tripId is required" });
-        }
-
-        if (!carereceiverId) {
+        if (!careReceiverId) {
             res.status(400).send({ message: "carereceiverId is required" });
         }
 
-        const location = { lat, lng, timestamp };
-        PutLocation(parseInt(tripId), location);
-        // 用 204 表示已接收但不回傳資料
-        res.status(204).end();
-    } catch (err) {
-        next(err);
+        const location = { lat, lng };
+        const record = tripRecords[careReceiverId];
+        if (!record) {
+            console.error("Trip is not created");
+            res.status(404).send({ message: "Trip is not created" });
+            return;
+        }
+        console.log("record:", record)
+
+        record["location"] = location;
+        // first update
+        if (!record?.location) {
+
+        }
+
+        // TODO: Alert message
+        EmitLocationChange(parseInt(careReceiverId), location);
+
+        res.status(200).send(location);
+    } catch (e) {
+        console.error(e);
+        res.status(400).send({ message: "UpdateLocation error" });
     }
 }
 
 
-function GetCareReceiverLocation(req, res) {
+async function WaitForLocationUpdate(req, res) {
     try {
-        const { tripId } = req.params;
-        SubscribeLocation(tripId, res);
+        const { careReceiverId } = req.params;
+
+
+        if (!careReceiverId) {
+            res.status(400).send({ message: "carereceiverId is required" });
+        }
+
+        const record = tripRecords[careReceiverId];
+        if (!record) {
+            console.error("Trip is not created");
+            res.status(404).send({ message: "Trip is not created" });
+            return;
+        }
+
+        console.log(`Wait for ${careReceiverId} to update location`);
+        const payload = await SubscribeLocation(parseInt(careReceiverId, 10), res);
+
+        return payload;
     } catch (err) {
         console.error(err);
         res.status(400).send({ message: "GetLocation error" });
@@ -106,7 +128,7 @@ export {
     NewTrip,
     WaitForNewTrip,
     GetTrip,
-    GetCareReceiverLocation,
+    WaitForLocationUpdate,
     UpdateLocation,
 
 }
