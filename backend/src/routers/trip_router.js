@@ -3,9 +3,9 @@ const router = express.Router();
 
 import {
     NewTrip,
-    WaitForNewTrip,
+    CheckForNewTrip,
     GetTrip,
-    WaitForLocationUpdate,
+    CheckLocationUpdate,
     UpdateLocation,
 } from '#src/controllers/trip_controller.js';
 
@@ -13,15 +13,15 @@ import {
 // http://localhost:PORT/trip
 
 // 照顧者建立 Trip
-router.post("/start/:caretakerId", NewTrip);
+router.post("/start", NewTrip);
 
-// 被照顧者等待 Trip 被建立 
-router.get("/wait/:careReceiverId", WaitForNewTrip)
+// 被照顧者確認是否有Trip 被建立 
+router.get("/check/:careReceiverId", CheckForNewTrip)
 
 router.get("/:tripId", GetTrip);
 
-// 照顧者等待位置更新
-router.get("/location/:careReceiverId/subscribe", WaitForLocationUpdate);
+// 照顧者確認是否有位置更新
+router.get("/location/:careReceiverId/check", CheckLocationUpdate);
 
 // 被照顧者更新位置
 router.put("/location/:careReceiverId", UpdateLocation);

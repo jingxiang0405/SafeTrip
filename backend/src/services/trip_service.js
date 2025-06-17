@@ -1,25 +1,5 @@
 import db from "#src/database.js";
 
-
-import EventEmitter from 'events';
-import { once } from 'events';
-
-const emitter = new EventEmitter();
-
-function EmitStartTrip(carereceiverId, payload) {
-    emitter.emit(`trip:${carereceiverId}`, payload);
-}
-
-function SubscribeNewTrip(carereceiverId) {
-    const eventKey = `trip:${carereceiverId}`;
-    return new Promise((resolve) => {
-
-        emitter.once(eventKey, payload => {
-            resolve(payload);
-        });
-
-    });
-}
 /**
  * Create a new Trip record including status and timestamps
  * @param {Object} params
@@ -86,8 +66,6 @@ async function FindTripById(tripId) {
 }
 
 export {
-    EmitStartTrip,
-    SubscribeNewTrip,
     InsertTrip,
     FindTripById
 };

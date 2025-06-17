@@ -1,28 +1,25 @@
-import { EmitLocationChange, SubscribeLocation } from "#src/services/location_service.js";
-import { EmitStartTrip, SubscribeNewTrip, FindTripById } from "#src/services/trip_service.js";
+import { GetDistanceMeter } from "#src/services/location_service.js";
+import { FindTripById } from "#src/services/trip_service.js";
 
 const tripRecords = {};
 async function NewTrip(req, res) {
     try {
 
 
-        const caretakerId = parseInt(req.params.caretakerId, 10);
-        const { careReceiverId, busName, startStation, endStation, direction } = req.body;
+        const { caretakerId, careReceiverId, busName, startStation, endStation, direction } = req.body;
 
+        const careReceiverIdi = parseInt(careReceiverId, 10);
+        const caretakerIdi = parseInt(caretakerId, 10);
         const newTrip = {
-            caretakerId,
-            careReceiverId,
+            caretakerIdi,
+            careReceiverIdi,
             busName,
             startStation,
             endStation,
             direction
         }
 
-        EmitStartTrip(careReceiverId, {
-            busName, startStation, endStation, terminal: direction.terminal
-        });
-
-        tripRecords[careReceiverId] = newTrip;
+        tripRecords[careReceiverIdi] = newTrip;
 
         console.log("[New Trip] current trips:\n", tripRecords);
         res.status(201).send(newTrip);
@@ -34,14 +31,17 @@ async function NewTrip(req, res) {
 }
 
 
-async function WaitForNewTrip(req, res) {
+async function CheckForNewTrip(req, res) {
 
     req.setTimeout(0);
 
     try {
         const careReceiverId = parseInt(req.params.careReceiverId, 10);
-        const payload = await SubscribeNewTrip(careReceiverId);
-        res.status(200).send(payload);
+        if (!tripRecords[careReceiverId]) {
+            res.status(204).send({});
+        }
+
+        res.status(200).send(tripRecords[careReceiverId]);
     }
     catch (e) {
         console.error(e);
@@ -73,7 +73,7 @@ async function UpdateLocation(req, res) {
             res.status(400).send({ message: "carereceiverId is required" });
         }
 
-        const location = { lat, lng };
+        const location = { lat, lng, checked: false };
         const record = tripRecords[careReceiverId];
         if (!record) {
             console.error("Trip is not created");
@@ -82,16 +82,24 @@ async function UpdateLocation(req, res) {
         }
         console.log("record:", record)
 
-        record["location"] = location;
-        // first update
-        if (!record?.location) {
+        const oldLocation = record["location"];
 
+        const messages = [];
+        // not first update
+        if (record?.location) {
+            if (GetDistanceMeter(oldLocation, location) > 300) {
+                messages.push("被照顧者偏離行程")
+            }
+            // TODO: Alert message
+        }
+        record["location"] = location;
+        record["messages"] = messages;
+        const result = {
+            location,
+            messages
         }
 
-        // TODO: Alert message
-        EmitLocationChange(parseInt(careReceiverId), location);
-
-        res.status(200).send(location);
+        res.status(200).send(result);
     } catch (e) {
         console.error(e);
         res.status(400).send({ message: "UpdateLocation error" });
@@ -99,7 +107,7 @@ async function UpdateLocation(req, res) {
 }
 
 
-async function WaitForLocationUpdate(req, res) {
+async function CheckLocationUpdate(req, res) {
     try {
         const { careReceiverId } = req.params;
 
@@ -115,10 +123,23 @@ async function WaitForLocationUpdate(req, res) {
             return;
         }
 
-        console.log(`Wait for ${careReceiverId} to update location`);
-        const payload = await SubscribeLocation(parseInt(careReceiverId, 10), res);
+        const location = record.location;
 
-        return payload;
+        if (!location) {
+            console.log("No location created yet");
+            res.status(204).send({})
+            return;
+        }
+
+        if (location.checked) {
+            console.log("No latest location update");
+
+            res.status(204).send({})
+            return;
+        }
+
+        tripRecords[careReceiverId].location.checked = true;
+        res.status(200).send({ location, messages: record?.messages || [] });
     } catch (err) {
         console.error(err);
         res.status(400).send({ message: "GetLocation error" });
@@ -126,9 +147,9 @@ async function WaitForLocationUpdate(req, res) {
 }
 export {
     NewTrip,
-    WaitForNewTrip,
+    CheckForNewTrip,
     GetTrip,
-    WaitForLocationUpdate,
+    CheckLocationUpdate,
     UpdateLocation,
 
 }
