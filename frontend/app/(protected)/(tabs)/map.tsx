@@ -3,20 +3,21 @@
   import { AppleMapsMapType } from "expo-maps/build/apple/AppleMaps.types";
   import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
   import { SafeAreaView } from "react-native-safe-area-context";
-  import { locationList } from "../../../assets/lib/LocationList.js";
+  import { locationList } from "@/assets/lib/LocationList";
   import { AppleMaps, GoogleMaps } from 'expo-maps';
   import { Platform, View, Text, Alert, Linking } from 'react-native';
   import { useLocalSearchParams } from 'expo-router';
-  import React, { useEffect ,useState} from 'react';
+  import React, { useContext, useEffect ,useState} from 'react';
   import * as Location from 'expo-location';
   import { fakeBusPositions } from '@/assets/lib/fakeData';
-  import { fakeShapeMap } from '@/assets/lib/fakeShapes';
+  // import { fakeShapeMap } from '@/assets/lib/fakeShapes';
   import { getMockDependentLocation } from '@/hooks/useMockDependentLocation';
   import busIcon from '@/assets/images/bus.png';
   import stopIcon from '@/assets/images/stop.png';
   import dependentIcon from '@/assets/images/dependent.png';
-  import { useProximityAlert } from '@/hooks/useProximityAlert'
-
+  import { useProximityAlert } from '@/hooks/useProximityAlert';
+  import { GetBusRouteShape } from '@/utils/busService';
+  import { AuthContext } from '@/utils/authContext';
 
   type StopMarker = { 
     latitude: number;
@@ -25,9 +26,9 @@
   };
 
   export default function Map() {
-
+    const authState = useContext(AuthContext);
     const [dependentLocation, setDependentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-
+    const [shapePoints, setShapePoints] = useState<{ lat: number; lon: number }[]>([]);
     // 載入後定期取得
     useEffect(() => {
       const interval = setInterval(async () => {
@@ -42,14 +43,6 @@
     useProximityAlert(fakeBusPositions[0], true);
 
     useEffect(() => {
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * This asynchronous function requests location permissions from the user.
- * It first requests foreground location permission. If not granted, it alerts
- * the user and provides an option to navigate to the system settings to enable it.
- * If foreground permission is granted, it then requests background location
- * permission, logging the result.
-/*******  5866079f-ec86-4268-8308-4bfc1acdeb06  *******/
       const requestLocationPermissions = async () => {
         try {
           // Request foreground permission first
@@ -94,7 +87,15 @@
     const params = useLocalSearchParams();
     const stopsParam = params.stops as string | undefined;
     // TODO: 改為呼叫 TDX API 取得路線 shapePoint（polyline）資料
-    const shapePoints = fakeShapeMap[params.busNumber as string] ?? [];
+    useEffect(() => {
+      const fetchBusRoute = async () => {
+      const busRouteShape = await GetBusRouteShape(authState.busNumber ?? '');
+      setShapePoints(busRouteShape ?? []);
+      // console.log('Bus route shape points:', busRouteShape);
+    };
+
+    fetchBusRoute();
+  }, [authState.busNumber]); // Ensure it runs when busNumber changes
     
     // TODO: 改為從 TDX API 拿到站點資料後解析，不要再從 URL 傳參數解析  (stopsParam)
     const stops = React.useMemo(() => {

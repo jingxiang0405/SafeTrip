@@ -87,13 +87,16 @@ async function GetBusRouteShape(busId: string) {
     // }
     // 
     // fakedata
-    return {
-        Route: [
-            { number: 25.042233, lon: 121.516002 },
-            { number: 25.047708, lon: 121.517055 },
-            { number: 25.0451, lon: 121.5235 }
+    return [
+            { lat: 25.042233, lon: 121.516002 },
+            { lat: 25.047708, lon: 121.517055 },
+            { lat: 25.0451, lon: 121.5235 },
+            { lat: 25.0689, lon: 121.6135 },
+            { lat: 25.0505, lon: 121.5808 },
+            { lat: 25.0001, lon: 121.5412 },
+            { lat: 25.0146, lon: 121.5331 },
+            { lat: 25.0223, lon: 121.5285 }
         ]
-    }
 }
 
 // const GetBusAllDirections = async (): Promise<{ label: string; value: string }[]> => {
@@ -107,6 +110,7 @@ async function GetBusRouteShape(busId: string) {
 const SendCreateTrip = async (userId: number, partnerId: number | undefined | null, busName: string, startStop: string, endStop: string, direction: number, terminal: string) => {
     // console.log("SendCreateTrip: ");
     // console.log(partnerId, busName, startStop, endStop, direction, terminal);
+    return [];
     try {
         const response = await api.post(`/trip/start`, {
             "careTakerId": userId,
