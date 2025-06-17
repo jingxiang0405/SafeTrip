@@ -101,8 +101,17 @@ async function FetchAllBusRoutes() {
     }
 }
 
+async function FetchBusShape(busId) {
+    try {
+        return await callApi(`/Bus/Shape/City/Taipei/${busId}`);
+    }
+    catch (e) {
+        console.error(e);
+    }
+}
 export {
     FetchBusRealTimeFrequency,
     FetchStopOfRoute,
-    FetchAllBusRoutes
+    FetchAllBusRoutes,
+    FetchBusShape
 }

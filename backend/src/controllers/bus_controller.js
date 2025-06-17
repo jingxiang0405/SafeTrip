@@ -1,4 +1,4 @@
-import { FetchAllBusRoutes, FetchStopOfRoute } from "#src/services/tdx_service.js";
+import { FetchAllBusRoutes, FetchStopOfRoute, FetchBusShape, FetchBusRealTimeFrequency } from "#src/services/tdx_service.js";
 
 const cache = {}
 
@@ -54,7 +54,23 @@ async function GetAllStops(req, res) {
     }
 }
 
+async function GetBusShape(req, res) {
+
+    const { dir, busId } = req.params;
+
+    console.log("GetBusShape")
+    const data = await FetchBusShape(busId);
+
+    const dirData = data.find((d) => d.Direction == dir);
+    const result = dirData.Geometry.replace("LINESTRING (", "").replace(")", "").split(", ").map(coord => {
+        const [lng, lat] = coord.split(" ").map(Number);
+        return { lat, lng };
+    });
+
+    res.status(200).send(result);
+}
 export {
     GetAllRoutes,
     GetAllStops,
+    GetBusShape
 }
