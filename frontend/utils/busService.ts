@@ -80,7 +80,8 @@ const SendCreateTrip = async (userId: number, partnerId: number | undefined | nu
     // console.log("SendCreateTrip: ");
     // console.log(partnerId, busName, startStop, endStop, direction, terminal);
     try {
-        const response = await api.post(`/trip/start/${userId}`, {
+        const response = await api.post(`/trip/start`, {
+            "careTakerId": userId,
             "careReceiverId": partnerId,
             "busName": busName,
             "startStation": startStop,
