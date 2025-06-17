@@ -69,8 +69,23 @@ async function GetBusShape(req, res) {
 
     res.status(200).send(result);
 }
+
+async function GetBusFrequency(req, res) {
+    try {
+
+        const { busId } = req.params;
+        const data = await FetchBusRealTimeFrequency(busId);
+        const result = data.map(bus => ({ PlateNumb: bus.PlateNumb, BusPosition: bus.BusPosition }))
+        res.status(200).send(result);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(400).send({ message: "GetBusFrequency error" });
+    }
+}
 export {
     GetAllRoutes,
     GetAllStops,
-    GetBusShape
+    GetBusShape,
+    GetBusFrequency
 }
