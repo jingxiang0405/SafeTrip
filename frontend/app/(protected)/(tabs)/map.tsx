@@ -116,7 +116,7 @@ useEffect(() => {
       const stops = await GetBusAllStops(authState.busNumber ?? '');
       if (stops && stops[authState.direction ?? 0]) {
         setAvailStops(stops[(authState.direction ?? 0).toString()] ?? []);
-        console.log('availStops:', availStops);
+        // console.log('availStops:', availStops);
 
         // console.log('stops:', stops);
       }
@@ -150,16 +150,17 @@ useEffect(() => {
       latitude: 25.0330,  // Taipei 101 location
       longitude: 121.5654
     };
-    
+   
     // Convert stops to map marker coordinates or use empty array
     const stopMarkers: StopMarker[] = availStops.length > 0
       ? availStops.map((stop: any) => ({
           latitude: stop.location.lat,
-          longitude: stop.location.lng,
+          longitude: stop.location.lon,
           title: stop.name || 'Unknown Stop'
         }))
       : [];
-    console.log('stopMarkers:', stopMarkers);
+    // console.log('stops:', stops);
+    // console.log('stopMarkers:', stopMarkers);
     
     // Set initial region centered on first stop or default location
     const initialRegion = {
