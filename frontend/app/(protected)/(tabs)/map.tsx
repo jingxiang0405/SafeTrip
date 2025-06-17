@@ -32,6 +32,7 @@
     const [busesPos, setBusesPos] = useState<{ latitude: number; longitude: number }[]>([]);
     const [polyline, setPolyline] = useState<{ coordinates: { latitude: number; longitude: number }[] } | undefined>(undefined);
     const [stops, setStops] = useState<StopMarker[]>([]); 
+    const [availStops, setAvailStops] = useState<any[]>([]); // 用於存放可用的站點資料
     // 載入後定期取得
     useEffect(() => {
       const interval = setInterval(async () => {
@@ -112,8 +113,13 @@ useEffect(() => {
         strokeWidth: 4,
       } : undefined;
       setPolyline(prepolyline);
-        const stops = await GetBusAllStops(authState.busNumber ?? '');
-        console.log('stopsParam:', stops);
+      const stops = await GetBusAllStops(authState.busNumber ?? '');
+      if (stops && stops[authState.direction ?? 0]) {
+        setAvailStops(stops[(authState.direction ?? 0).toString()] ?? []);
+        console.log('availStops:', availStops);
+
+        // console.log('stops:', stops);
+      }
     } catch (error) {
       console.error('Failed to fetch bus route shape:', error);
       setShapePoints([]);
@@ -144,16 +150,17 @@ useEffect(() => {
       latitude: 25.0330,  // Taipei 101 location
       longitude: 121.5654
     };
-
+    
     // Convert stops to map marker coordinates or use empty array
-    const stopMarkers: StopMarker[] = stops.length > 0
-      ? stops.map((stop: any) => ({
-          latitude: stop.StopPosition.PositionLat,
-          longitude: stop.StopPosition.PositionLon,
-          title: stop.StopName.Zh_tw
+    const stopMarkers: StopMarker[] = availStops.length > 0
+      ? availStops.map((stop: any) => ({
+          latitude: stop.location.lat,
+          longitude: stop.location.lng,
+          title: stop.name || 'Unknown Stop'
         }))
       : [];
-
+    console.log('stopMarkers:', stopMarkers);
+    
     // Set initial region centered on first stop or default location
     const initialRegion = {
       latitude: stopMarkers.length > 0 ? stopMarkers[0].latitude : defaultLocation.latitude,
@@ -226,8 +233,10 @@ useEffect(() => {
         />
       );
     } else if (Platform.OS === 'android') {
+      
       return (
         <GoogleMaps.View
+          
           style={{ flex: 1 }}
           cameraPosition={{
             coordinates: {

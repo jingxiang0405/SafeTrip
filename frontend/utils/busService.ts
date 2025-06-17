@@ -83,9 +83,13 @@ async function GetBusAllStops(busId: string){
     //         }
     //     ]
     // }
+    if (busId.length === 0) {
+        return [{}];
+    }
+    
     try {
         const response = await api.get(`/bus/route/${busId}`);
-        //console.log("GetBusAllStops response:", response.data);
+        // console.log("GetBusAllStops response:", transformedData.);
         return response.data;
     } catch (e) {
         console.error("GetAllBuses failed:", e);
