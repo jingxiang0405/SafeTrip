@@ -1,7 +1,9 @@
 // components/GlobalTaskProvider.tsx
 import React, { useEffect, useContext } from 'react';
 import { AuthContext } from '@/utils/authContext';
-import { CheckTripStatus } from '@/utils/busService';
+import { CheckTripStatus, SendCareReceiverLoc, getCareReceiverLoc } from '@/utils/busService';
+import * as Location from 'expo-location';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 export const GlobalTaskProvider = ({ children }: { children:any }) => {
   const {
@@ -15,7 +17,8 @@ export const GlobalTaskProvider = ({ children }: { children:any }) => {
     setStartStop,
     setEndStop,
     setTerminal,
-    setDirection
+    setDirection,
+    setCareReceiverLocation,
     // any other setters or states you want to update
   } = useContext(AuthContext);
 
@@ -26,7 +29,8 @@ export const GlobalTaskProvider = ({ children }: { children:any }) => {
         const now = new Date().toLocaleTimeString();
         console.log(`[✅ Task ran at ${now} for user ${userId}]`);
         // console.log(`${isLoggedIn} ${userId} ${role} ${inTrip}`);
-        if (role === 'careReceiver' && !inTrip) {
+        if (role === 'careReceiver') {
+          if (!inTrip) {
             const status = await CheckTripStatus(userId);
             if (status !== null && status !== undefined) {
                 setBusNumber(status?.busName);
@@ -37,6 +41,22 @@ export const GlobalTaskProvider = ({ children }: { children:any }) => {
                 setInTrip(true);
                 console.log(status);
             }
+          }
+          if (inTrip) {
+            const loc = await Location.getCurrentPositionAsync({});
+            const location = {
+              "lat": loc.coords.latitude,
+              "lng": loc.coords.longitude
+            }
+            setCareReceiverLocation(location);
+            // Send the care receiver's current location to the backend
+            await SendCareReceiverLoc(userId, location);
+            console.log(`Sent care receiver location for user ${userId}`);
+          }
+        }
+        else if (role === 'caretaker') {
+          const loc = await getCareReceiverLoc(pairedWith?.id);
+          setCareReceiverLocation(loc);
         }
         // Example: fetch some status or update trip info
         // const response = await fetch('your-api-endpoint', { headers: { Authorization: `Bearer ${token}` } });
@@ -62,7 +82,8 @@ export const GlobalTaskProvider = ({ children }: { children:any }) => {
     setStartStop,
     setEndStop,
     setTerminal,
-    setDirection
+    setDirection,
+    setCareReceiverLocation
   ]);
 
   return  <>{children}</>;

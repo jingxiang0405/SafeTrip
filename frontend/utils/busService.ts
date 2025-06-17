@@ -1,4 +1,28 @@
 import { api } from '@/utils/apiConfig';
+import * as Location from 'expo-location';
+
+const SendCareReceiverLoc = async (userId: number, location: { lat: number; lng: number }) => {
+    console.log("SendCareReceiverLoc: ", userId, location);
+    try {
+        const response = await api.put(`/trip/location/${userId}`, location);
+        return response.data;
+    } catch (e) {
+        console.error("SendCareReceiverLoc failed:", e);
+    }
+};
+
+const getCareReceiverLoc = async (careReceiverId: number | null | undefined) => {
+    console.log("getCareReceiverLoc: ", careReceiverId);
+    try{
+        const response = await api.get(`/trip/location/${careReceiverId}/check`);
+        return response.data;
+    } catch (e) {
+        console.error("getCareReceiverLoc failed:", e);
+    }
+};
+
+
+
 
 const SendCreateTrip = async (userId: number, partnerId: number | undefined | null, busName: string, startStop: string, endStop: string, direction: number, terminal: string) => {
     // console.log("SendCreateTrip: ");
@@ -111,7 +135,7 @@ async function GetBusAllStops(busId: string){
         console.error("GetAllBuses failed:", e);
     }
 }
-async function GetBusPos(busId: string) {
+async function GetBusInfo(busId: string) {
         // TODO: backend
     // response: 
     // {
@@ -127,48 +151,13 @@ async function GetBusPos(busId: string) {
     // }
     // 
     // fakedata
-    return [
-    {
-        "PlateNumb": "EAL-0037",
-        "BusPosition": {
-            "PositionLon": 121.615732,
-            "PositionLat": 24.999095,
-            "GeoHash": "wsqqpqvy7"
-        }
-    },
-    {
-        "PlateNumb": "EAL-1061",
-        "BusPosition": {
-            "PositionLon": 121.542438,
-            "PositionLat": 25.001403,
-            "GeoHash": "wsqqjz2e8"
-        }
-    },
-    {
-        "PlateNumb": "EAL-1062",
-        "BusPosition": {
-            "PositionLon": 121.543632,
-            "PositionLat": 25.000195,
-            "GeoHash": "wsqqjz1ke"
-        }
-    },
-    {
-        "PlateNumb": "EAL-1063",
-        "BusPosition": {
-            "PositionLon": 121.568748,
-            "PositionLat": 24.988465,
-            "GeoHash": "wsqqnm58m"
-        }
-    },
-    {
-        "PlateNumb": "EAL-1073",
-        "BusPosition": {
-            "PositionLon": 121.573727,
-            "PositionLat": 24.992272,
-            "GeoHash": "wsqqnmxq9"
-        }
+    try{
+        const response = await api.get(`/bus/route/frequency/${busId}`);
+        return response.data;
+    } catch (e) {
+        console.error("GetBusPos failed:", e);
     }
-    ]
+
 }
 async function GetBusRouteShape(busId: string, direction: number) {
         // TODO: backend
@@ -222,7 +211,9 @@ export {
     GetBusAllStops,
     SendCreateTrip,
     GetBusRouteShape,
-    GetBusPos,
-    CheckTripStatus
+    GetBusInfo,
+    CheckTripStatus,
+    SendCareReceiverLoc,
+    getCareReceiverLoc
     // GetBusAllDirections
 }

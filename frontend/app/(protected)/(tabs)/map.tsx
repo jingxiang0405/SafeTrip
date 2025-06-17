@@ -11,12 +11,12 @@
   import * as Location from 'expo-location';
   //import { fakeBusPositions } from '@/assets/lib/fakeData';
   // import { fakeShapeMap } from '@/assets/lib/fakeShapes';
-  import { getMockDependentLocation } from '@/hooks/useMockDependentLocation';
+  //import { getMockDependentLocation } from '@/hooks/useMockDependentLocation';
   import busIcon from '@/assets/images/bus.png';
   import stopIcon from '@/assets/images/stop.png';
   import dependentIcon from '@/assets/images/dependent.png';
   import { useProximityAlert } from '@/hooks/useProximityAlert';
-  import { GetBusRouteShape , GetBusPos, GetBusAllStops} from '@/utils/busService';
+  import { GetBusRouteShape , GetBusInfo, GetBusAllStops, getCareReceiverLoc} from '@/utils/busService';
   import { AuthContext } from '@/utils/authContext';
 
   type StopMarker = { 
@@ -36,9 +36,12 @@
     // 載入後定期取得
     useEffect(() => {
       const interval = setInterval(async () => {
-        const loc = await getMockDependentLocation();
-        if (loc) setDependentLocation(loc);
-      }, 10000); // 每 10 秒抓一次
+        const loc = authState.careReceiverLocation;
+        if (loc) setDependentLocation({
+          latitude: loc.lat,
+          longitude: loc.lng
+        });
+      }, 1000); // 每 1 秒抓一次
 
       return () => clearInterval(interval);
     }, []);
@@ -88,17 +91,7 @@
       requestLocationPermissions();
     }, []);
 
-    const params = useLocalSearchParams();
-    const stopsParam = params.stops as string | undefined;
-    // TODO: 改為呼叫 TDX API 取得路線 shapePoint（polyline）資料
-  //   useEffect(() => {
-  //     const fetchBusRoute = async () => {
-  //       const busRouteShape = await GetBusRouteShape(authState.busNumber ?? '', authState.direction ?? 0);
-  //       setShapePoints(busRouteShape ?? []);
-  //       // console.log('Bus route shape points:', busRouteShape);
-  //     };
-  //   fetchBusRoute();
-  // }, [authState.busNumber, authState.direction]); 
+
 useEffect(() => {
   const fetchRoute = async () => {
     try {
@@ -118,8 +111,15 @@ useEffect(() => {
         setAvailStops(stops[(authState.direction ?? 0).toString()] ?? []);
         // console.log('availStops:', availStops);
 
-        // console.log('stops:', stops);
+        // console.log('stops:', stop
+        // s);
       }
+      const BusesInfo = await GetBusInfo(authState.busNumber ?? '');
+      setBusesPos(BusesInfo.map((bus: any) => ({
+        latitude: bus.BusPosition.PositionLat,
+        longitude: bus.BusPosition.PositionLon,
+      })));
+      
     } catch (error) {
       console.error('Failed to fetch bus route shape:', error);
       setShapePoints([]);
@@ -128,22 +128,6 @@ useEffect(() => {
 
   fetchRoute();
 }, []);// 👈 this ensures it only runs once
-    // TODO: 改為從 TDX API 拿到站點資料後解析，不要再從 URL 傳參數解析  (stopsParam)
-    /*const stops = React.useMemo(() => {
-      try {
-        if (!stopsParam) {  
-          return [];
-        }
-        // Remove any potential wrapping quotes
-        const cleanJson = "";//stopsParam(/^"(.*)"$/, '$1');
-        const parsed = JSON.parse(cleanJson);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (error) {
-        console.error('Failed to parse stops:', error);
-        console.error('Stops param:', stopsParam);
-        return [];
-      }
-    }, [stopsParam]);*/
 
     // Default to Taipei city center if no stops available
     const defaultLocation = {
@@ -178,12 +162,12 @@ useEffect(() => {
       //icon : busIcon,
     })),
     // TODO: 啟用 icon 欄位並改為 TDX API 提供的公車即時位置資料
-    // ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
-    //   coordinates: bus,
-    //   title: `Bus ${index + 1}`,
-    //   snippet : "即時位置",
-    //   //icon : stopIcon,
-    // })) : []),
+    ...(stops.length > 0 ? busesPos.map((bus, index) => ({
+      coordinates: bus,
+      title: `Bus ${index + 1}`,
+      snippet : "即時位置",
+      //icon : stopIcon,
+    })) : []),
     ...(dependentLocation
     ? [{
         coordinates: dependentLocation,

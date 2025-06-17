@@ -7,7 +7,9 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
-import { useMockDependentLocation } from '@/hooks/useMockDependentLocation';
+import { getCareReceiverLoc } from '@/utils/busService';
+import  { AuthContext }  from '@/utils/authContext'
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const TARGET_STOP = {
   name: '善導寺',
@@ -38,15 +40,14 @@ export default function BusStatusScreen() {
 
   const [distance, setDistance] = useState<number | null>(null);
   const [arrived, setArrived] = useState(false);
-
-  useMockDependentLocation(); // TODO: 正式上線時移除，改為由裝置 GPS 定時取得位置並上傳後端
+  const authState = React.useContext(AuthContext);
 
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
-        const loc = await Location.getCurrentPositionAsync({});
+        const loc = await getCareReceiverLoc(authState.userId); // TODO: 改為從後端獲取被照顧者位置
         // TODO: 此處改為 fetch 被照顧者位置（由後端提供）
         // const res = await fetch('https://api.xxx.com/dependent-location');
         // const loc = await res.json();
@@ -97,13 +98,13 @@ export default function BusStatusScreen() {
       >
         <ThemedView style={styles.infoBox}>
           <Text style={styles.label}>公車號碼：</Text>
-          <Text style={styles.value}>{busNumber}</Text>
+          <Text style={styles.value}>{authState.busNumber}</Text>
 
           <Text style={styles.label}>起點站：</Text>
-          <Text style={styles.value}>{startStop}</Text>
+          <Text style={styles.value}>{authState.startStop}</Text>
 
           <Text style={styles.label}>目標站點：</Text>
-          <Text style={styles.currentStop}>{TARGET_STOP.name}</Text>
+          <Text style={styles.currentStop}>{authState.endStop}</Text>
 
           <Text style={styles.notice}>{getNotice()}</Text>
         </ThemedView>
