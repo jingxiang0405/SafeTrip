@@ -107,10 +107,11 @@ async function UpdateLocation(req, res) {
         const nearbyBus = (nearbyBusIndex === -1) ? {} : busData[nearbyBusIndex];
         record["location"] = location;
         record["messages"] = messages;
+        record["nearbyBus"] = nearbyBus;
         const result = {
             location,
             messages,
-            NearByBus: nearbyBus
+            nearbyBus
         }
 
         res.status(200).send(result);
@@ -153,7 +154,7 @@ async function CheckLocationUpdate(req, res) {
         }
 
         tripRecords[careReceiverId].location.checked = true;
-        res.status(200).send({ location, messages: record?.messages || [] });
+        res.status(200).send({ location, messages: record?.messages || [], nearbyBus: record.nearbyBus });
     } catch (err) {
         console.error(err);
         res.status(400).send({ message: "GetLocation error" });
