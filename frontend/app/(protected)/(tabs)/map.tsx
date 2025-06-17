@@ -113,7 +113,7 @@ useEffect(() => {
       } : undefined;
       setPolyline(prepolyline);
         const stops = await GetBusAllStops(authState.busNumber ?? '');
-        console.log('stopsParam:', stops);
+        // console.log('stopsParam:', stops);
     } catch (error) {
       console.error('Failed to fetch bus route shape:', error);
       setShapePoints([]);
