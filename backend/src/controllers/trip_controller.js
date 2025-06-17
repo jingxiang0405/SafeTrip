@@ -77,7 +77,7 @@ async function UpdateLocation(req, res) {
         const record = tripRecords[careReceiverId];
         if (!record) {
             console.error("Trip is not created");
-            res.status(404).send({ message: "Trip is not created" });
+            res.status(204).send({});
             return;
         }
         console.log("record:", record)
