@@ -28,6 +28,7 @@ type AuthState = {
     terminal?: string;
     busNumber?: string;
     inTrip: boolean;
+    careReceiverLocation?: { lat: number, lng: number } | null | undefined;
 
     logIn: (username: string, password: string) => void;
     signUp: (username: string, email: string, phone: string, password: string) => void;
@@ -43,6 +44,7 @@ type AuthState = {
     setTerminal: (terminal: string) => void;
     setBusNumber: (busNumber: string) => void;
     setInTrip: (inTrip: boolean) => void;
+    setCareReceiverLocation: (location: { lat: number, lng: number } | null | undefined) => void;
 
     generatePairCode: () => Promise<string>;
     waitForPairComplete: () => Promise<{ success: boolean; partnerId: number }>;
@@ -68,6 +70,7 @@ export const AuthContext = createContext<AuthState>({
     terminal: "",
     busNumber: "",
     inTrip: false,
+    careReceiverLocation: null,
 
     logIn: () => { },
     signUp: () => { },
@@ -87,6 +90,7 @@ export const AuthContext = createContext<AuthState>({
     waitForPairComplete: async () => ({ success: false, partnerId: 0 }),
     submitPairCode: async () => ({ success: false, partnerId: 0 }),
     checkPairStatus: async () => ({ success: false }),
+    setCareReceiverLocation: () => {}
 });
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -104,6 +108,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const [terminal, setTerminal] = useState<string>("");
     const [busNumber, setBusNumber] = useState<string>("");
     const [inTrip, setInTrip] = useState<boolean>(false);
+    const [careReceiverLocation, setCareReceiverLocation] = useState<{ lat: number, lng: number } | null | undefined>(null);
 
     const router = useRouter();
 
@@ -119,7 +124,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         direction?: number,
         terminal?: string,
         busNumber?: string,
-        inTrip?: boolean
+        inTrip?: boolean,
+        careReceiverLocation?: { lat: number, lng: number } | null | undefined
     }) => {
         try {
             const jsonValue = JSON.stringify(auth);
@@ -198,6 +204,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setDirection(-1);
             setTerminal("");
             setBusNumber("");
+            setCareReceiverLocation(null);
 
             // Then store the state
             await storeAuthState({
@@ -241,6 +248,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
             setRole('');
             setPairedWith(null);
             setEmergencyContact("");
+            setCareReceiverLocation(null);
             await storeAuthState({
                 userId: 0,
                 username: "",
@@ -472,6 +480,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 terminal,
                 busNumber,
                 inTrip,
+                careReceiverLocation,
                 logIn,
                 signUp,
                 logOut,
@@ -489,7 +498,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 setDirection,
                 setTerminal,
                 setBusNumber,
-                setInTrip
+                setInTrip,
+                setCareReceiverLocation
             }}
         >
             {children}
