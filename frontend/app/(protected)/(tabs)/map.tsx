@@ -1,17 +1,7 @@
-  import { useBottomTabOverflow } from "@/components/ui/TabBarBackground";
-  import { useImage } from "expo-image";
-  import { AppleMapsMapType } from "expo-maps/build/apple/AppleMaps.types";
-  import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
-  import { SafeAreaView } from "react-native-safe-area-context";
-  import { locationList } from "@/assets/lib/LocationList";
   import { AppleMaps, GoogleMaps } from 'expo-maps';
   import { Platform, View, Text, Alert, Linking } from 'react-native';
-  import { useLocalSearchParams } from 'expo-router';
   import React, { useContext, useEffect ,useState} from 'react';
   import * as Location from 'expo-location';
-  //import { fakeBusPositions } from '@/assets/lib/fakeData';
-  // import { fakeShapeMap } from '@/assets/lib/fakeShapes';
-  //import { getMockDependentLocation } from '@/hooks/useMockDependentLocation';
   import busIcon from '@/assets/images/bus.png';
   import stopIcon from '@/assets/images/stop.png';
   import dependentIcon from '@/assets/images/dependent.png';
@@ -184,12 +174,12 @@ useEffect(() => {
       tintColor: 'deepskyblue',
       systemImage: 'signpost.right',
     })),
-    // ...(stops.length > 0 ? fakeBusPositions.map((bus, index) => ({
-    //   coordinates: bus,
-    //   title: `Bus ${index + 1}`,
-    //   tintColor: 'crimson',
-    //   systemImage: 'bus',
-    // })) : []),
+    ...(stops.length > 0 ? busesPos.map((bus, index) => ({
+      coordinates: bus,
+      title: `Bus ${index + 1}`,
+      tintColor: 'crimson',
+      systemImage: 'bus',
+    })) : []),
     ...(dependentLocation
     ? [{
       

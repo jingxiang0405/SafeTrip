@@ -1,12 +1,15 @@
 // ✅ 此 hook 負責監測被照顧者是否遠離公車
 // 使用時在照顧者的 Map 畫面呼叫即可
-
+import { useContext } from 'react';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { getMockDependentLocation } from '@/hooks/useMockDependentLocation';
+import { AuthContext } from '@/utils/authContext';  
+
 
 export function useProximityAlert(busPosition: { latitude: number; longitude: number }, enabled: boolean) {
   const [hasAlerted, setHasAlerted] = useState(false);
+  const authState = useContext(AuthContext);
 
   useEffect(() => {
     if (!enabled) return;
@@ -17,10 +20,10 @@ export function useProximityAlert(busPosition: { latitude: number; longitude: nu
 
       const distance = getDistance(busPosition, dependentLocation);
 
-      if (distance > 300 && !hasAlerted) {
+      if (!authState.nearbyBus) {
         Alert.alert('⚠️ 被照顧者可能走失', '系統偵測到被照顧者已遠離公車超過 300 公尺');
         setHasAlerted(true);
-      } else if (distance <= 300 && hasAlerted) {
+      } else {
         setHasAlerted(false); // 回到安全距離，重置警告
       }
     }, 8000); // 每 8 秒檢查一次

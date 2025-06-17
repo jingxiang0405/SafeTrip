@@ -19,6 +19,7 @@ export const GlobalTaskProvider = ({ children }: { children:any }) => {
     setTerminal,
     setDirection,
     setCareReceiverLocation,
+    setNearbyBus,
     // any other setters or states you want to update
   } = useContext(AuthContext);
 
@@ -56,7 +57,10 @@ export const GlobalTaskProvider = ({ children }: { children:any }) => {
         }
         else if (role === 'caretaker') {
           const loc = await getCareReceiverLoc(pairedWith?.id);
-          setCareReceiverLocation(loc);
+          if (loc) {
+            setCareReceiverLocation(loc);
+            setNearbyBus(loc?.nearbyBus ?? []);
+          }
         }
         // Example: fetch some status or update trip info
         // const response = await fetch('your-api-endpoint', { headers: { Authorization: `Bearer ${token}` } });
@@ -83,7 +87,8 @@ export const GlobalTaskProvider = ({ children }: { children:any }) => {
     setEndStop,
     setTerminal,
     setDirection,
-    setCareReceiverLocation
+    setCareReceiverLocation,
+    setNearbyBus
   ]);
 
   return  <>{children}</>;

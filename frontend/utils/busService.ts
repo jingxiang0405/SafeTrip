@@ -5,6 +5,7 @@ const SendCareReceiverLoc = async (userId: number, location: { lat: number; lng:
     console.log("SendCareReceiverLoc: ", userId, location);
     try {
         const response = await api.put(`/trip/location/${userId}`, location);
+        console.log("SendCareReceiverLoc response:", response.data);
         return response.data;
     } catch (e) {
         console.error("SendCareReceiverLoc failed:", e);
@@ -16,7 +17,7 @@ const getCareReceiverLoc = async (careReceiverId: number | null | undefined) => 
     try{
         const response = await api.get(`/trip/location/${careReceiverId}/check`);
         if (response.status === 204) {
-            // console.log("getCareReceiverLoc: Location not updated:", response.status);
+            console.log("getCareReceiverLoc: Location not updated:", response.status);
             return null;
         }
         return response.data;
