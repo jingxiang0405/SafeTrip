@@ -41,6 +41,12 @@ export default function Trip() {
     // 建立行程邏輯
   const handleCreateTrip = () => {
     SendCreateTrip(authState.userId, authState?.pairedWith?.id, busNumber, startStop, endStop, direction, allStops[direction][allStops[direction].length - 1].name ?? '');
+    authState.setStartStop(startStop);
+    authState.setEndStop(endStop);
+    authState.setDirection(direction);
+    authState.setTerminal(allStops[direction][allStops[direction].length - 1].name ?? '');
+    authState.setBusNumber(busNumber);
+
     if (!startStop || !endStop || !busNumber) {
       Alert.alert('錯誤', '請輸入所有欄位');
       return;
