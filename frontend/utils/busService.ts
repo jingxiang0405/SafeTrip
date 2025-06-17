@@ -67,6 +67,34 @@ async function GetBusAllStops(busId: string){
         console.error("GetAllBuses failed:", e);
     }
 }
+async function GetBusRouteShape(busId: string) {
+        // TODO: backend
+    // response: 
+    // {
+    //      Route : [
+    //
+    //             {
+    //                 number, number
+    //             }
+    //             {
+    //                 number, number
+    //             }    
+    //             {
+    //                 number, number
+    //             }
+    //           ...
+    //      ]
+    // }
+    // 
+    // fakedata
+    return {
+        Route: [
+            { number: 25.042233, lon: 121.516002 },
+            { number: 25.047708, lon: 121.517055 },
+            { number: 25.0451, lon: 121.5235 }
+        ]
+    }
+}
 
 // const GetBusAllDirections = async (): Promise<{ label: string; value: string }[]> => {
 //   // 模擬 API 回傳
@@ -101,6 +129,7 @@ const SendCreateTrip = async (userId: number, partnerId: number | undefined | nu
 export {
     GetAllBuses,
     GetBusAllStops,
-    SendCreateTrip
+    SendCreateTrip,
+    GetBusRouteShape
     // GetBusAllDirections
 }
