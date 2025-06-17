@@ -85,7 +85,7 @@ async function GetBusAllStops(busId: string){
     // }
     try {
         const response = await api.get(`/bus/route/${busId}`);
-        // console.log("GetBusAllStops response:", response.data);
+        //console.log("GetBusAllStops response:", response.data);
         return response.data;
     } catch (e) {
         console.error("GetAllBuses failed:", e);

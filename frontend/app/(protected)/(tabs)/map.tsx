@@ -16,7 +16,7 @@
   import stopIcon from '@/assets/images/stop.png';
   import dependentIcon from '@/assets/images/dependent.png';
   import { useProximityAlert } from '@/hooks/useProximityAlert';
-  import { GetBusRouteShape , GetBusPos} from '@/utils/busService';
+  import { GetBusRouteShape , GetBusPos, GetBusAllStops} from '@/utils/busService';
   import { AuthContext } from '@/utils/authContext';
 
   type StopMarker = { 
@@ -30,6 +30,7 @@
     const [dependentLocation, setDependentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [shapePoints, setShapePoints] = useState<{ lat: number; lon: number }[]>([]);
     const [busesPos, setBusesPos] = useState<{ latitude: number; longitude: number }[]>([]);
+    const [stops, setStops] = useState<StopMarker[]>([]); 
     // 載入後定期取得
     useEffect(() => {
       const interval = setInterval(async () => {
@@ -86,26 +87,29 @@
     }, []);
 
     const params = useLocalSearchParams();
-    const stopsParam = params.stops as string | undefined;
-    // TODO: 改為呼叫 TDX API 取得路線 shapePoint（polyline）資料
+    
+    
     useEffect(() => {
       const fetchBusRoute = async () => {
       const busRouteShape = await GetBusRouteShape(authState.busNumber ?? '', authState.direction ?? 0);
       setShapePoints(busRouteShape ?? []);
       // console.log('Bus route shape points:', busRouteShape);
+
+      const stops = await GetBusAllStops(authState.busNumber ?? '');
+      console.log('stopsParam:', stops);
     };
 
     fetchBusRoute();
   }, [authState.busNumber]); // Ensure it runs when busNumber changes
     
     // TODO: 改為從 TDX API 拿到站點資料後解析，不要再從 URL 傳參數解析  (stopsParam)
-    const stops = React.useMemo(() => {
+    /*const stops = React.useMemo(() => {
       try {
         if (!stopsParam) {  
           return [];
         }
         // Remove any potential wrapping quotes
-        const cleanJson = stopsParam.replace(/^"(.*)"$/, '$1');
+        const cleanJson = "";//stopsParam(/^"(.*)"$/, '$1');
         const parsed = JSON.parse(cleanJson);
         return Array.isArray(parsed) ? parsed : [];
       } catch (error) {
@@ -113,7 +117,7 @@
         console.error('Stops param:', stopsParam);
         return [];
       }
-    }, [stopsParam]);
+    }, [stopsParam]);*/
 
     // Default to Taipei city center if no stops available
     const defaultLocation = {
