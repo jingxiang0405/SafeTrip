@@ -15,6 +15,10 @@ const getCareReceiverLoc = async (careReceiverId: number | null | undefined) => 
     console.log("getCareReceiverLoc: ", careReceiverId);
     try{
         const response = await api.get(`/trip/location/${careReceiverId}/check`);
+        if (response.status === 204) {
+            console.log("getCareReceiverLoc: Trip not found:", response.status);
+            return null;
+        }
         return response.data;
     } catch (e) {
         console.error("getCareReceiverLoc failed:", e);
