@@ -57,7 +57,6 @@ function PairWithCode(code) {
 
 
 import EventEmitter from 'events';
-import { once } from 'events';
 
 const emitter = new EventEmitter();
 

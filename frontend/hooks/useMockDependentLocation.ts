@@ -22,7 +22,18 @@ export function useMockDependentLocation() {
     return () => clearInterval(interval);
   }, []);
 }
+// TODO: 將這段改為使用 Location.getCurrentPositionAsync()
+// 並透過 fetch() 傳送真實位置至後端 API，取代模擬的 fakePath
 
+/*
+例：
+const location = await Location.getCurrentPositionAsync({});
+await fetch('https://your-backend-api.com/dependent-location', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ latitude: location.coords.latitude, longitude: location.coords.longitude })
+});
+*/
 export async function getMockDependentLocation(): Promise<{ latitude: number; longitude: number } | null> {
   try {
     const value = await AsyncStorage.getItem('mockDependentLocation');
@@ -35,6 +46,11 @@ export async function getMockDependentLocation(): Promise<{ latitude: number; lo
   return null;
 }
 
-// ✅ 被照顧者呼叫 useMockDependentLocation() → 每 10 秒寫入一筆位置
-// ✅ 照顧者地圖畫面可以從 AsyncStorage 讀取 mockDependentLocation 並加上 marker
-// ✅ 未來只要把這段換成 TDX+GPS 傳到後端即可
+// TODO: 將這段改為 fetch 從後端 API 讀取被照顧者的最新位置
+
+/*
+例：
+const res = await fetch('https://your-backend-api.com/dependent-location');
+const location = await res.json();
+return location;
+*/

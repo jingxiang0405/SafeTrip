@@ -1,27 +1,51 @@
-import { PostLocation, SubscribeLocation } from "#src/services/location_service.js";
+import { GetDistanceMeter } from "#src/services/location_service.js";
 import { FindTripById } from "#src/services/trip_service.js";
+import { FetchBusRealTimeFrequency } from "#src/services/tdx_service.js";
+const tripRecords = {};
 async function NewTrip(req, res) {
     try {
 
 
-        const { caretaker_id, carereceiver_id, bus_id, bus_name, start_station, dest_station } = req.body;
-        const newTrip = await CreateTrip({
-            caretaker_id,
-            carereceiver_id,
-            bus_id,
-            bus_name,
-            start_station,
-            dest_station,
-            status: 'pending',
-            start_time: new Date(),
-            end_time: null,
-        });
+        const { caretakerId, careReceiverId, busName, startStation, endStation, direction } = req.body;
 
+        const careReceiverIdi = parseInt(careReceiverId, 10);
+        const caretakerIdi = parseInt(caretakerId, 10);
+        const newTrip = {
+            caretakerIdi,
+            careReceiverIdi,
+            busName,
+            startStation,
+            endStation,
+            direction
+        }
+
+        tripRecords[careReceiverIdi] = newTrip;
+
+        console.log("Trip Created:", tripRecords);
         res.status(201).send(newTrip);
     }
     catch (e) {
         console.error(e);
         res.status(403).send({ message: "NewTrip error" });
+    }
+}
+
+
+async function CheckForNewTrip(req, res) {
+
+    req.setTimeout(0);
+
+    try {
+        const careReceiverId = parseInt(req.params.careReceiverId, 10);
+        if (!tripRecords[careReceiverId]) {
+            res.status(204).send({});
+        }
+
+        res.status(200).send(tripRecords[careReceiverId]);
+    }
+    catch (e) {
+        console.error(e);
+        res.status(400).send({ message: "WaitForNewTrip failed" });
     }
 }
 
@@ -42,28 +66,96 @@ async function GetTrip(req, res) {
 
 async function UpdateLocation(req, res) {
     try {
-        const { tripId } = req.params;
-        const { lat, lng, timestamp, role } = req.body;
+        const { careReceiverId } = req.params;
+        const { lat, lng } = req.body;
+        console.log(`CareReceiverId:${careReceiverId} UpdateLocation: ${lat}, ${lng}`);
+        if (!careReceiverId) {
+            res.status(400).send({ message: "carereceiverId is required" });
+        }
 
-        if (role != 'carereceiver') {
-            console.error("非被照顧者呼叫UpdateLocation. role=", role);
+        const location = { lat, lng, checked: false };
+        const record = tripRecords[careReceiverId];
+        if (!record) {
+            console.error("Trip is not created");
+            res.status(204).send({});
             return;
         }
-        const location = { lat, lng, timestamp };
-        PostLocation(tripId, location);
-        // 用 204 表示已接收但不回傳資料
-        res.status(204).end();
-    } catch (err) {
-        next(err);
+        console.log("(trip record)", record)
+
+        const oldLocation = record["location"];
+
+        const messages = [];
+        // not first update
+        if (record?.location) {
+            // if (GetDistanceMeter(oldLocation, location) > 300) {
+            //     messages.push("被照顧者偏離行程")
+            // }
+            // TODO: Alert message
+        }
+
+        // Find Nearby Bus
+        const busData = (await FetchBusRealTimeFrequency(record.busName)).map(bus => ({ BusPosition: bus.BusPosition, PlateNumb: bus.PlateNumb }))
+        let minDistance = 100;
+        let nearbyBusIndex = -1;
+        busData.forEach((bus, index) => {
+            const dist = GetDistanceMeter(location, { lat: bus.BusPosition.PositionLat, lng: bus.BusPosition.PositionLon });
+            if (dist < minDistance) {
+                nearbyBusIndex = index;
+                minDistance = dist;
+            }
+        });
+        const nearbyBus = (nearbyBusIndex === -1) ? {} : busData[nearbyBusIndex];
+        record["location"] = location;
+        record["messages"] = messages;
+        record["nearbyBus"] = nearbyBus;
+        const result = {
+            location,
+            messages,
+            nearbyBus
+        }
+
+        res.status(200).send(result);
+    } catch (e) {
+        console.error(e);
+        res.status(400).send({ message: "UpdateLocation error" });
     }
 }
 
 
-function GetLocation(req, res) {
+async function CheckLocationUpdate(req, res) {
     try {
-        const { tripId } = req.params;
-        SubscribeLocation(tripId, res);
-        // 不在這裡呼叫 next()，讓連線保持 open
+        const { careReceiverId } = req.params;
+
+        console.log(`CheckLocationUpdate: ${careReceiverId}`);
+
+        if (!careReceiverId) {
+            res.status(400).send({ message: "carereceiverId is required" });
+        }
+
+        const record = tripRecords[careReceiverId];
+        if (!record) {
+            console.error("Trip is not created");
+            res.status(204).send({});
+            return;
+        }
+
+        const location = record.location;
+
+        if (!location) {
+            console.log("No location created yet");
+            res.status(204).send({})
+            return;
+        }
+
+        if (location.checked) {
+            console.log("No latest location update");
+
+            res.status(204).send({})
+            return;
+        }
+
+        tripRecords[careReceiverId].location.checked = true;
+        res.status(200).send({ location, messages: record?.messages || [], nearbyBus: record.nearbyBus });
     } catch (err) {
         console.error(err);
         res.status(400).send({ message: "GetLocation error" });
@@ -71,8 +163,9 @@ function GetLocation(req, res) {
 }
 export {
     NewTrip,
+    CheckForNewTrip,
     GetTrip,
-    GetLocation,
+    CheckLocationUpdate,
     UpdateLocation,
 
 }

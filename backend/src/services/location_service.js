@@ -1,55 +1,42 @@
-const pendingRequests = new Map();   // tripId -> [{ res, timer }]
-const latestLocations = new Map();   // tripId -> { lat, lng, timestamp }
-
-const TIMEOUT_MS = 30000; // 30秒逾時
-
-function SubscribeLocation(tripId, res) {
-    // 設定 no-cache header
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-
-    if (!pendingRequests.has(tripId)) {
-        pendingRequests.set(tripId, []);
-    }
-
-    // 建立逾時機制
-    const timer = setTimeout(() => {
-        // 逾時後回傳空資料或最新位置
-        const loc = latestLocations.get(tripId) || null;
-        res.json({ location: loc });
-        removePending(tripId, res);
-    }, TIMEOUT_MS);
-
-    // 記錄正在等待的 response
-    pendingRequests.get(tripId).push({ res, timer });
+function EmitLocationChange(careReceiverId, payload) {
+    const eventKey = `location:${careReceiverId}`;
+    console.log("Location Event:", eventKey)
+    emitter.emit(eventKey, payload);
 }
 
-function PostLocation(tripId, location) {
-    // 更新最新位置快取
-    latestLocations.set(tripId, location);
 
-    // 立即回應所有掛起的訂閱
-    const pendings = pendingRequests.get(tripId) || [];
-    for (const { res, timer } of pendings) {
-        clearTimeout(timer);
-        res.json({ location });
+function SubscribeLocation(careReceiverId, timeoutMs) {
+    const eventKey = `location:${careReceiverId}`;
+    console.log("Subscribing to event:", eventKey);
+    const listenerPromise = new Promise((resolve) => {
+        emitter.once(eventKey, (payload) => {
+            resolve(payload);
+        });
+    });
+
+    if (typeof timeoutMs === 'number') {
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Location update timed out')), timeoutMs);
+        });
+        return Promise.race([listenerPromise, timeoutPromise]);
     }
 
-    // 清除該 tripId 的 pending list
-    pendingRequests.delete(tripId);
+    return listenerPromise;
 }
 
-function removePending(tripId, res) {
-    const list = pendingRequests.get(tripId) || [];
-    const filtered = list.filter(item => item.res !== res);
-    if (filtered.length > 0) {
-        pendingRequests.set(tripId, filtered);
-    } else {
-        pendingRequests.delete(tripId);
-    }
+function GetDistanceMeter(location1, location2) {
+    const R = 6371e3; // 地球半徑（公尺）
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(location2.lat - location1.lat); // 緯度差;
+    const dLon = toRad(location2.lng - location1.lng); // 經度差;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(location1.lat)) * Math.cos(toRad(location2.lat)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
-
 
 export {
-    SubscribeLocation,
-    PostLocation
+    GetDistanceMeter
 }
