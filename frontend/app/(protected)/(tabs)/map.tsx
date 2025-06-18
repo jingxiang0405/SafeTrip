@@ -26,7 +26,7 @@ export default function Map() {
     const authState = useContext(AuthContext);
     const [dependentLocation, setDependentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [shapePoints, setShapePoints] = useState<{ lat: number; lng: number }[]>([]);
-    const [busesPos, setBusesPos] = useState<{ latitude: number; longitude: number }[]>([]);
+    const [busesPos, setBusesPos] = useState<{ latitude: number; longitude: number, id: string }[]>([]);
     const [polyline, setPolyline] = useState<{ coordinates: { latitude: number; longitude: number }[] } | undefined>(undefined);
     const [availStops, setAvailStops] = useState<any[]>([]); // 用於存放可用的站點資料
     const [markers, setMarkers] = useState<any>([]);
@@ -113,9 +113,11 @@ export default function Map() {
         const fetchBusesInterval = setInterval(async () => {
 
             const busesInfo = await GetBusInfo(authState.busNumber ?? '');
+
             setBusesPos(busesInfo.map((bus: any) => ({
                 latitude: bus.BusPosition.PositionLat,
                 longitude: bus.BusPosition.PositionLon,
+                id: bus.PlateNumb
             })));
 
             let markers: any[] = [];
@@ -127,10 +129,10 @@ export default function Map() {
                         snippet: "站點",
                         //icon : busIcon,
                     })),
-                    ...(busesPos.length > 0 ? busesPos.map((pos, index) => ({
+                    ...(busesPos.length > 0 ? busesPos.map(({ latitude, longitude, id }, index) => ({
 
-                        coordinates: pos,
-                        title: `Bus ${index + 1}`,
+                        coordinates: { latitude, longitude },
+                        title: id,
                         snippet: "即時位置",
                         //icon : stopIcon,
                     })) : []),
@@ -145,9 +147,9 @@ export default function Map() {
                         tintColor: 'deepskyblue',
                         systemImage: 'signpost.right',
                     })),
-                    ...(busesPos.length > 0 ? busesPos.map((pos, index) => ({
-                        coordinates: pos,
-                        title: `Bus ${index + 1}`,
+                    ...(busesPos.length > 0 ? busesPos.map(({ latitude, longitude, id }, index) => ({
+                        coordinates: { latitude, longitude },
+                        title: id,
                         tintColor: 'crimson',
                         systemImage: 'bus',
                     })) : []),
