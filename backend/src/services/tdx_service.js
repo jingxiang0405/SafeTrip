@@ -71,7 +71,6 @@ async function callApi(path, opts = {}) {
 async function FetchBusRealTimeFrequency(busId) {
     try {
         const result = await callApi(`/Bus/RealTimeByFrequency/City/Taipei/${busId}`);
-        console.log(result);
         return result;
     }
     catch (e) {
