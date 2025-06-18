@@ -7,13 +7,16 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
-import { useMockDependentLocation } from '@/hooks/useMockDependentLocation';
+import { getCareReceiverLoc } from '@/utils/busService';
+import  { AuthContext }  from '@/utils/authContext'
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const TARGET_STOP = {
   name: '善導寺',
   latitude: 25.0451,
   longitude: 121.5235,
 };
+// TODO: 未來改為從 props or route params 中取得 endStop 座標，避免寫死
 
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371e3; // 地球半徑（公尺）
@@ -37,15 +40,18 @@ export default function BusStatusScreen() {
 
   const [distance, setDistance] = useState<number | null>(null);
   const [arrived, setArrived] = useState(false);
-
-  useMockDependentLocation(); 
+  const authState = React.useContext(AuthContext);
 
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
-        const loc = await Location.getCurrentPositionAsync({});
+        const locresponse = await getCareReceiverLoc(authState.userId); // TODO: 改為從後端獲取被照顧者位置;
+        const loc = !locresponse ? locresponse : authState.careReceiverLocation;
+        // TODO: 此處改為 fetch 被照顧者位置（由後端提供）
+        // const res = await fetch('https://api.xxx.com/dependent-location');
+        // const loc = await res.json();
         const dist = getDistanceMeters(
           loc.coords.latitude,
           loc.coords.longitude,
@@ -56,6 +62,7 @@ export default function BusStatusScreen() {
         setDistance(dist);
 
         if (dist < 50 && !arrived) {
+          //TODO
           Alert.alert('提醒您下車', '已抵達善導寺站');
           setArrived(true);
         }
@@ -92,13 +99,13 @@ export default function BusStatusScreen() {
       >
         <ThemedView style={styles.infoBox}>
           <Text style={styles.label}>公車號碼：</Text>
-          <Text style={styles.value}>{busNumber}</Text>
+          <Text style={styles.value}>{authState.busNumber}</Text>
 
           <Text style={styles.label}>起點站：</Text>
-          <Text style={styles.value}>{startStop}</Text>
+          <Text style={styles.value}>{authState.startStop}</Text>
 
           <Text style={styles.label}>目標站點：</Text>
-          <Text style={styles.currentStop}>{TARGET_STOP.name}</Text>
+          <Text style={styles.currentStop}>{authState.endStop}</Text>
 
           <Text style={styles.notice}>{getNotice()}</Text>
         </ThemedView>

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -8,9 +8,11 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AuthContext } from '@/utils/authContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const authState = useContext(AuthContext);
   return (
     <Tabs
       screenOptions={{
@@ -50,18 +52,11 @@ export default function TabLayout() {
           ),
         }} 
       />
-      {/* <Tabs.Screen
-        name="trip"
-        options={{
-          title: 'Trip',
-          tabBarIcon: ({ color }) => <IconSymbol size={27} name="paperplane.fill" color={color} />,
-        }}
-      /> */}
       <Tabs.Screen 
         name="trip"
         options={{ 
           title: 'Trip',
-          // headerShown: true,
+          href: authState.role === 'caretaker' ? '/trip' : null,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={focused ? 'paper-plane' : 'paper-plane-outline'} 
@@ -72,9 +67,24 @@ export default function TabLayout() {
         }} 
       />
       <Tabs.Screen 
+        name="busStatus"
+        options={{ 
+          title: 'BusStatus',
+          href: authState.role === 'careReceiver' ? '/busStatus' : null,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={focused ? 'bus' : 'bus-outline'}
+              color={color} 
+              size={size} 
+            />
+          )
+        }} 
+      />
+      <Tabs.Screen 
         name="map"
         options={{ 
           title: 'Map',
+          href: authState.role === 'caretaker' && authState.inTrip? '/map' : null,
           // headerShown: true,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
