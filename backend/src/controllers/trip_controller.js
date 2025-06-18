@@ -21,7 +21,7 @@ async function NewTrip(req, res) {
 
         tripRecords[careReceiverIdi] = newTrip;
 
-        console.log("[New Trip] current trips:\n", tripRecords);
+        console.log("Trip Created:", tripRecords);
         res.status(201).send(newTrip);
     }
     catch (e) {
@@ -68,7 +68,7 @@ async function UpdateLocation(req, res) {
     try {
         const { careReceiverId } = req.params;
         const { lat, lng } = req.body;
-
+        console.log(`CareReceiverId:${careReceiverId} UpdateLocation: ${lat}, ${lng}`);
         if (!careReceiverId) {
             res.status(400).send({ message: "carereceiverId is required" });
         }
@@ -80,7 +80,7 @@ async function UpdateLocation(req, res) {
             res.status(204).send({});
             return;
         }
-        console.log("record:", record)
+        console.log("(trip record)", record)
 
         const oldLocation = record["location"];
 
@@ -126,6 +126,7 @@ async function CheckLocationUpdate(req, res) {
     try {
         const { careReceiverId } = req.params;
 
+        console.log(`CheckLocationUpdate: ${careReceiverId}`);
 
         if (!careReceiverId) {
             res.status(400).send({ message: "carereceiverId is required" });
